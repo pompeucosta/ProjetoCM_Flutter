@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flex_seed_scheme/flex_seed_scheme.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:run_route/data/preset.dart';
 
 import 'presets_page.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter<Preset>(PresetAdapter());
   runApp(const MyApp());
 }
 
@@ -72,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
-        body: pages[selectedIndex],
+        body: pages[selectedIndex], //pages[selectedIndex],
         bottomNavigationBar: BottomNavigationBar(
             currentIndex: selectedIndex,
             onTap: (index) {

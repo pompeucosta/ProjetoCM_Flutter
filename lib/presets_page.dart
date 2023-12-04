@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'edit_preset_page.dart';
-import 'preset.dart';
+import 'data/preset.dart';
+import 'data/database/presets_db.dart';
 
 class ListCard extends StatelessWidget {
   final Preset preset;
@@ -37,11 +39,8 @@ class ListCard extends StatelessWidget {
 class PresetsPage extends StatefulWidget {
   PresetsPage({super.key});
 
-  final List<Preset> presets = [
-    Preset("test", false, const Duration(hours: 0, minutes: 0, seconds: 30)),
-    Preset("ola ola", true, const Duration(hours: 0, minutes: 30, seconds: 15)),
-    Preset("diaria", false, const Duration(hours: 1, minutes: 0, seconds: 0))
-  ];
+  final PresetsDatabase db = PresetsDatabase();
+
   @override
   State<PresetsPage> createState() => _PresetsPageState();
 }
@@ -53,46 +52,53 @@ class _PresetsPageState extends State<PresetsPage> {
       appBar: AppBar(
         title: const Center(child: Text("Presets")),
       ),
-      body: ListView.builder(
-          itemCount: widget.presets.length,
-          itemBuilder: (context, index) {
-            return ListCard(widget.presets[index], () {
-              navigateToEditPage(context, index);
-            }, () {
-              deletePreset(index);
-            });
-          }),
+      body: FutureBuilder(
+          future: widget.db.getAllPresets(),
+          builder: ((context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              final presets = snapshot.data ?? [];
+              return ListView.builder(
+                  itemCount: presets.length,
+                  itemBuilder: (context, index) {
+                    Preset currentPreset = presets[index];
+                    return ListCard(currentPreset, () {
+                      navigateToEditPage(context, currentPreset,
+                          (preset) async {
+                        await widget.db.updatePreset(currentPreset, preset);
+                      });
+                    }, () async {
+                      await widget.db.deletePreset(currentPreset);
+                      setState(() {});
+                    });
+                  });
+            }
+          })),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
-            navigateToEditPage(context, -1);
+            navigateToEditPage(context, null, (preset) async {
+              await widget.db.insertPreset(preset);
+            });
           },
           child: const Icon(Icons.add)),
     );
   }
 
-  void navigateToEditPage(BuildContext context, int index) async {
+  void navigateToEditPage(BuildContext context, Preset? preset,
+      Future<void> Function(Preset preset) onResultReturned) async {
     final result = await Navigator.push<Preset>(
       context,
       MaterialPageRoute<Preset>(
-        builder: (context) =>
-            EditPage(index == -1 ? null : widget.presets[index]),
+        builder: (context) => EditPage(preset),
       ),
     );
 
     if (result != null) {
-      setState(() {
-        if (index == -1) {
-          widget.presets.add(result);
-        } else {
-          widget.presets[index] = result;
-        }
-      });
+      await onResultReturned(result);
+      setState(() {});
     }
-  }
-
-  void deletePreset(int index) {
-    setState(() {
-      widget.presets.removeAt(index);
-    });
   }
 }

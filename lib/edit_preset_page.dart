@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'preset.dart';
+import 'data/preset.dart';
 
 class EditPage extends StatefulWidget {
   final Preset? preset;
@@ -142,10 +142,7 @@ class _EditPageState extends State<EditPage> {
     int minutes = int.tryParse(minutesController.text) ?? 0;
     int seconds = int.tryParse(secondsController.text) ?? 0;
 
-    Duration duration =
-        Duration(hours: hours, minutes: minutes, seconds: seconds);
-
-    Preset pr = Preset(name, twoWay, duration);
+    Preset pr = Preset(name, twoWay, hours * 3600 + minutes * 60 + seconds);
 
     Navigator.pop(context, pr);
   }

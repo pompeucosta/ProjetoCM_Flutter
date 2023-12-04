@@ -41,7 +41,8 @@ class _EditPageState extends State<EditPage> {
         appBar: AppBar(title: const Center(child: Text("Edit Preset"))),
         body: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
+            child: SingleChildScrollView(
+                child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextField(
@@ -117,7 +118,7 @@ class _EditPageState extends State<EditPage> {
                             isEntryValid ? () => saveChanges(context) : null,
                         child: const Text("Save Preset")))
               ],
-            )));
+            ))));
   }
 
   bool checkValidity() {

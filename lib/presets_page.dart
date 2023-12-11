@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'data/blocs/presets/presets_bloc.dart';
 import 'edit_preset_page.dart';
-import 'data/preset.dart';
+import 'data/models/preset.dart';
 
 class ListCard extends StatelessWidget {
   final Preset preset;

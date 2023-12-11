@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../preset.dart';
+import '../models/preset.dart';
 
 class PresetsDatabase {
   static const String boxName = 'presets';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'data/preset.dart';
+import 'data/models/preset.dart';
 
 class EditPage extends StatefulWidget {
   final Preset? preset;

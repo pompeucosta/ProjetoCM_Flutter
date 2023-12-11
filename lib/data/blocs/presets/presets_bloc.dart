@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:run_route/data/database/presets_db.dart';
 
-import '../../preset.dart';
+import '../../models/preset.dart';
 
 part 'presets_event.dart';
 part 'presets_state.dart';

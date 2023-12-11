@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flex_seed_scheme/flex_seed_scheme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:run_route/data/preset.dart';
+import 'package:run_route/data/database/presets_db.dart';
 
+import 'data/blocs/presets/presets_bloc.dart';
 import 'presets_page.dart';
 
 void main() async {
   await Hive.initFlutter();
-  Hive.registerAdapter<Preset>(PresetAdapter());
-  runApp(const MyApp());
+  final PresetsDatabase presetsdb = PresetsDatabase();
+  await presetsdb.init();
+  runApp(MyApp(presetsdb));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final PresetsDatabase presetsdb;
+  const MyApp(this.presetsdb, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +26,9 @@ class MyApp extends StatelessWidget {
 
     final ColorScheme schemeLight = SeedColorScheme.fromSeeds(
       brightness: Brightness.light,
-      // Primary key color is required, like seed color ColorScheme.fromSeed.
       primaryKey: primarySeedColor,
-      // You can add optional own seeds for secondary and tertiary key colors.
       secondaryKey: secondarySeedColor,
       tertiaryKey: tertiarySeedColor,
-      // Tone chroma config and tone mapping is optional, if you do not add it
-      // you get the config matching Flutter's Material 3 ColorScheme.fromSeed.
       tones: FlexTones.vivid(Brightness.light),
     );
 
@@ -40,20 +40,38 @@ class MyApp extends StatelessWidget {
       tones: FlexTones.vivid(Brightness.dark),
     );
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'RunRoute',
-      themeMode: ThemeMode.system,
-      theme: ThemeData.from(
-        colorScheme: schemeLight,
-        useMaterial3: true,
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider(create: (context) => presetsdb),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'RunRoute',
+        themeMode: ThemeMode.system,
+        theme: ThemeData.from(
+          colorScheme: schemeLight,
+          useMaterial3: true,
+        ),
+        darkTheme: ThemeData.from(
+          colorScheme: schemeDark,
+          useMaterial3: true,
+        ),
+        home: const TestPage(),
       ),
-      darkTheme: ThemeData.from(
-        colorScheme: schemeDark,
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(),
     );
+  }
+}
+
+class TestPage extends StatelessWidget {
+  const TestPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(providers: [
+      BlocProvider(
+        create: (context) => PresetsBloc(context.read<PresetsDatabase>()),
+      )
+    ], child: const MyHomePage());
   }
 }
 
@@ -69,14 +87,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final List<Widget> pages = [
     const GreetingsPage(),
-    PresetsPage(),
+    const PresetsPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       return Scaffold(
-        body: pages[selectedIndex], //pages[selectedIndex],
+        body: pages[selectedIndex],
         bottomNavigationBar: BottomNavigationBar(
             currentIndex: selectedIndex,
             onTap: (index) {

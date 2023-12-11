@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'data/blocs/presets/presets_bloc.dart';
 import 'edit_preset_page.dart';
 import 'data/preset.dart';
-import 'data/database/presets_db.dart';
 
 class ListCard extends StatelessWidget {
   final Preset preset;
@@ -36,59 +38,99 @@ class ListCard extends StatelessWidget {
   }
 }
 
-class PresetsPage extends StatefulWidget {
-  PresetsPage({super.key});
-
-  final PresetsDatabase db = PresetsDatabase();
+class PresetsPage extends StatelessWidget {
+  const PresetsPage({super.key});
 
   @override
-  State<PresetsPage> createState() => _PresetsPageState();
+  Widget build(BuildContext context) {
+    return const PresetsView();
+  }
 }
 
-class _PresetsPageState extends State<PresetsPage> {
+class PresetsView extends StatelessWidget {
+  const PresetsView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<PresetsBloc, PresetsOverviewState>(
+      listener: (context, state) {
+        switch (state.status) {
+          case PresetsOverviewStatus.loading:
+            break;
+          case PresetsOverviewStatus.success:
+            break;
+          case PresetsOverviewStatus.failure:
+            break;
+          case PresetsOverviewStatus.initial:
+            context.read<PresetsBloc>().add(LoadPresetsEvent());
+            break;
+          case PresetsOverviewStatus.loaded:
+            break;
+        }
+      },
+      builder: (context, state) {
+        if (state.presets != null) {
+          return PresetsLayout(state.presets!);
+        }
+        context.read<PresetsBloc>().add(LoadPresetsEvent());
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+      buildWhen: (previous, current) {
+        return current.status == PresetsOverviewStatus.loaded ||
+            current.status == PresetsOverviewStatus.loading;
+      },
+    );
+  }
+}
+
+class PresetsLayout extends StatelessWidget {
+  final ValueListenable<Box<Preset>> presetListenable;
+
+  const PresetsLayout(this.presetListenable, {super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Center(child: Text("Presets")),
+        title: const Center(
+          child: Text("Presets"),
+        ),
       ),
-      body: FutureBuilder(
-          future: widget.db.getAllPresets(),
-          builder: ((context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            } else if (snapshot.hasError) {
-              return Text('Error: ${snapshot.error}');
-            } else {
-              final presets = snapshot.data ?? [];
-              return ListView.builder(
-                  itemCount: presets.length,
-                  itemBuilder: (context, index) {
-                    Preset currentPreset = presets[index];
-                    return ListCard(currentPreset, () {
-                      navigateToEditPage(context, currentPreset,
-                          (preset) async {
-                        await widget.db.updatePreset(currentPreset, preset);
-                      });
-                    }, () async {
-                      await widget.db.deletePreset(currentPreset);
-                      setState(() {});
-                    });
-                  });
-            }
-          })),
+      body: ValueListenableBuilder<Box<Preset>>(
+        valueListenable: presetListenable,
+        builder: (context, value, child) {
+          final presets = value.values.toList();
+          return ListView.builder(
+            itemBuilder: (context, index) {
+              Preset preset = presets[index];
+              return ListCard(preset, () {
+                navigateToEditPage(context, preset, (updatedPreset) {
+                  sendUpdatePresetCommand(context, preset, updatedPreset);
+                });
+              }, () {
+                sendDeletePresetCommand(context, preset);
+              });
+            },
+            itemCount: presets.length,
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            navigateToEditPage(context, null, (preset) async {
-              await widget.db.insertPreset(preset);
-            });
-          },
-          child: const Icon(Icons.add)),
+        onPressed: () {
+          navigateToEditPage(context, null, (preset) {
+            sendInsertPresetCommand(context, preset);
+          });
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
+  // helper functions
   void navigateToEditPage(BuildContext context, Preset? preset,
-      Future<void> Function(Preset preset) onResultReturned) async {
+      void Function(Preset preset) onResultReturned) async {
     final result = await Navigator.push<Preset>(
       context,
       MaterialPageRoute<Preset>(
@@ -97,8 +139,22 @@ class _PresetsPageState extends State<PresetsPage> {
     );
 
     if (result != null) {
-      await onResultReturned(result);
-      setState(() {});
+      onResultReturned(result);
     }
+  }
+
+  void sendInsertPresetCommand(BuildContext context, Preset preset) {
+    context.read<PresetsBloc>().add(InsertPresetEvent(preset));
+  }
+
+  void sendDeletePresetCommand(BuildContext context, Preset preset) {
+    context.read<PresetsBloc>().add(DeletePresetEvent(preset));
+  }
+
+  void sendUpdatePresetCommand(
+      BuildContext context, Preset currentPreset, Preset updatedPreset) {
+    context
+        .read<PresetsBloc>()
+        .add(UpdatePresetEvent(currentPreset, updatedPreset));
   }
 }

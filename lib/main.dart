@@ -2,21 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:run_route/SessionInProgress.dart';
 import 'package:run_route/data/database/presets_db.dart';
+import 'package:run_route/data/database/running_session_db.dart';
 
 import 'data/blocs/presets/presets_bloc.dart';
+import 'data/blocs/running_session/running_session_bloc.dart';
 import 'presets_page.dart';
 
 void main() async {
   await Hive.initFlutter();
   final PresetsDatabase presetsdb = PresetsDatabase();
   await presetsdb.init();
-  runApp(MyApp(presetsdb));
+
+  final RunningSessionDatabase sessiondb = RunningSessionDatabase();
+  await sessiondb.init();
+
+  runApp(MyApp(presetsdb, sessiondb));
 }
 
 class MyApp extends StatelessWidget {
   final PresetsDatabase presetsdb;
-  const MyApp(this.presetsdb, {super.key});
+  final RunningSessionDatabase sessiondb;
+  const MyApp(this.presetsdb, this.sessiondb, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +51,7 @@ class MyApp extends StatelessWidget {
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider(create: (context) => presetsdb),
+        RepositoryProvider(create: (context) => sessiondb),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -67,11 +76,17 @@ class TestPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(providers: [
-      BlocProvider(
-        create: (context) => PresetsBloc(context.read<PresetsDatabase>()),
-      )
-    ], child: const MyHomePage());
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => PresetsBloc(context.read<PresetsDatabase>()),
+        ),
+        BlocProvider(
+            create: (context) =>
+                RunningSessionBloc(context.read<RunningSessionDatabase>())),
+      ],
+      child: const MyHomePage(),
+    );
   }
 }
 
@@ -88,6 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<Widget> pages = [
     const GreetingsPage(),
     const PresetsPage(),
+    const RunningSessionView(),
   ];
 
   @override
@@ -110,6 +126,10 @@ class _MyHomePageState extends State<MyHomePage> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.list),
                 label: "Presets",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.list),
+                label: "Session",
               ),
             ]),
       );

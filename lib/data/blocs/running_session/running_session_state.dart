@@ -11,6 +11,8 @@ final class RunningSessionState extends Equatable {
   final int caloriesBurned;
   final int distance;
 
+  Duration get duration => Duration(seconds: durationInSeconds);
+
   const RunningSessionState(
       {this.status = RunningSessionStatus.initial,
       this.averageSpeed = 0,

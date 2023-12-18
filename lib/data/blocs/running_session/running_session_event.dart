@@ -46,3 +46,11 @@ final class CancelSessionEvent extends RunningSessionEvent {
   @override
   List<Object?> get props => [];
 }
+
+final class _TimerTicked extends RunningSessionEvent {
+  const _TimerTicked(this.durationInSeconds);
+  final int durationInSeconds;
+
+  @override
+  List<Object?> get props => [durationInSeconds];
+}

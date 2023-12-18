@@ -13,7 +13,7 @@ class RunningSessionBloc
     extends Bloc<RunningSessionEvent, RunningSessionState> {
   final RunningSessionDatabase sessionDB;
   late Preset preset;
-  late StreamSubscription<int>? timer;
+  StreamSubscription<int>? timer;
   int duration = 0;
 
   @override
@@ -22,54 +22,84 @@ class RunningSessionBloc
     return super.close();
   }
 
-  //TODO: meter try catchs
   RunningSessionBloc(this.sessionDB) : super(const RunningSessionState()) {
-    on<StartSessionEvent>((event, emit) {
-      preset = event.preset;
-      emit(state.copyWith(status: RunningSessionStatus.inProgress));
-      timer?.cancel();
-      timer = Stream.periodic(const Duration(seconds: 1), (elapsed) => elapsed)
-          .listen((duration) {
-        this.duration = duration;
-        emit(state.copyWith(durationInSeconds: duration));
-      });
+    on<StartSessionEvent>((event, emit) async {
+      try {
+        preset = event.preset;
+        emit(state.copyWith(status: RunningSessionStatus.inProgress));
+        await timer?.cancel();
+        timer =
+            Stream.periodic(const Duration(seconds: 1), (elapsed) => elapsed)
+                .listen((duration) {
+          this.duration = duration;
+          add(_TimerTicked(duration));
+        });
+        print("started");
+      } catch (err) {
+        print(err.toString());
+        emit(state.copyWith(status: RunningSessionStatus.failure));
+      }
     });
+    on<_TimerTicked>(((event, emit) {
+      emit(state.copyWith(durationInSeconds: event.durationInSeconds));
+    }));
     on<EndSessionEvent>((event, emit) async {
-      final today = DateTime.now();
-      final details = SessionDetails(
-          0, 0, duration, 0, 0, 0, today.day, today.month, today.year, "");
+      try {
+        final today = DateTime.now();
+        final details = SessionDetails(
+            0, 0, duration, 0, 0, 0, today.day, today.month, today.year, "");
 
-      await sessionDB.insertSession(details);
+        await sessionDB.insertSession(details);
+        emit(state.copyWith(status: RunningSessionStatus.success));
+      } catch (err) {
+        emit(state.copyWith(status: RunningSessionStatus.failure));
+      }
     });
     on<PauseSessionEvent>((event, emit) {
-      if (state.status == RunningSessionStatus.inProgress) {
-        timer?.pause();
-        emit(state.copyWith(status: RunningSessionStatus.paused));
+      try {
+        if (state.status == RunningSessionStatus.inProgress) {
+          timer?.pause();
+          emit(state.copyWith(status: RunningSessionStatus.paused));
+        }
+      } catch (err) {
+        emit(state.copyWith(status: RunningSessionStatus.failure));
       }
     });
     on<UnPauseSessionEvent>((event, emit) {
-      if (state.status == RunningSessionStatus.paused) {
-        timer?.resume();
-        emit(state.copyWith(status: RunningSessionStatus.inProgress));
+      try {
+        if (state.status == RunningSessionStatus.paused) {
+          timer?.resume();
+          emit(state.copyWith(status: RunningSessionStatus.inProgress));
+        }
+      } catch (err) {
+        emit(state.copyWith(status: RunningSessionStatus.failure));
       }
     });
     on<RestartSessionEvent>((event, emit) {
       //reset and call start session
-      timer?.cancel();
-      state.copyWith(
-          status: RunningSessionStatus.initial,
-          durationInSeconds: 0,
-          stepsTaken: 0,
-          averageSpeed: 0,
-          topSpeed: 0,
-          caloriesBurned: 0,
-          distance: 0);
-      add(StartSessionEvent(preset));
+      try {
+        timer?.cancel();
+        state.copyWith(
+            status: RunningSessionStatus.initial,
+            durationInSeconds: 0,
+            stepsTaken: 0,
+            averageSpeed: 0,
+            topSpeed: 0,
+            caloriesBurned: 0,
+            distance: 0);
+        add(StartSessionEvent(preset));
+      } catch (err) {
+        emit(state.copyWith(status: RunningSessionStatus.failure));
+      }
     });
     on<CancelSessionEvent>((event, emit) {
       //stop timer and other services
-      timer?.cancel();
-      emit(state.copyWith(status: RunningSessionStatus.success));
+      try {
+        timer?.cancel();
+        emit(state.copyWith(status: RunningSessionStatus.success));
+      } catch (err) {
+        emit(state.copyWith(status: RunningSessionStatus.failure));
+      }
     });
   }
 }

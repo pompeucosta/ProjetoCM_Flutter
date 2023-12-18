@@ -16,7 +16,6 @@ class PresetsBloc extends Bloc<PresetsEvent, PresetsOverviewState> {
     on<LoadPresetsEvent>((event, emit) async {
       emit(state.copyWith(status: () => PresetsOverviewStatus.loading));
       final presets = _presetsDatabase.getAllPresets();
-      print(presets.value.values.length);
       emit(state.copyWith(
           presets: () => presets, status: () => PresetsOverviewStatus.loaded));
     });

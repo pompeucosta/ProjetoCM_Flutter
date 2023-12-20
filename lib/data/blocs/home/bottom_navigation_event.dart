@@ -1,10 +1,10 @@
-part of 'home_bloc.dart';
+part of 'bottom_navigation_bloc.dart';
 
-sealed class HomeEvent extends Equatable {
-  const HomeEvent();
+sealed class BottomNavigationEvent extends Equatable {
+  const BottomNavigationEvent();
 }
 
-class TabChangedEvent extends HomeEvent {
+class TabChangedEvent extends BottomNavigationEvent {
   final int selectedIndex;
 
   const TabChangedEvent(this.selectedIndex);
@@ -13,14 +13,14 @@ class TabChangedEvent extends HomeEvent {
   List<Object?> get props => [selectedIndex];
 }
 
-class SessionStartedEvent extends HomeEvent {
+class SessionStartedEvent extends BottomNavigationEvent {
   const SessionStartedEvent();
 
   @override
   List<Object?> get props => [];
 }
 
-class SessionEndedEvent extends HomeEvent {
+class SessionEndedEvent extends BottomNavigationEvent {
   const SessionEndedEvent();
 
   @override

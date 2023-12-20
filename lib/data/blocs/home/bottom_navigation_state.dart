@@ -1,15 +1,15 @@
-part of 'home_bloc.dart';
+part of 'bottom_navigation_bloc.dart';
 
 enum AppTab { home, presets, session, history }
 
-final class HomeState extends Equatable {
-  const HomeState(
+final class BottomNavigationState extends Equatable {
+  const BottomNavigationState(
       {this.selectedTab = AppTab.home, this.includeSession = false});
   final AppTab selectedTab;
   final bool includeSession;
 
-  HomeState copyWith({AppTab? selectedTab, bool? includeSession}) {
-    return HomeState(
+  BottomNavigationState copyWith({AppTab? selectedTab, bool? includeSession}) {
+    return BottomNavigationState(
         selectedTab: selectedTab ?? this.selectedTab,
         includeSession: includeSession ?? this.includeSession);
   }

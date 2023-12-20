@@ -1,16 +1,15 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
-part 'home_event.dart';
-part 'home_state.dart';
+part 'bottom_navigation_event.dart';
+part 'bottom_navigation_state.dart';
 
-class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc() : super(const HomeState()) {
+class BottomNavigationBloc
+    extends Bloc<BottomNavigationEvent, BottomNavigationState> {
+  BottomNavigationBloc() : super(const BottomNavigationState()) {
     on<TabChangedEvent>((event, emit) {
       if (event.selectedIndex >= AppTab.values.length) {
-        print(event.selectedIndex.toString() +
-            " >= " +
-            AppTab.values.length.toString());
+        print("invalid index");
       } else {
         emit(state.copyWith(selectedTab: AppTab.values[event.selectedIndex]));
       }

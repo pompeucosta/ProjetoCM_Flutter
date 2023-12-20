@@ -3,7 +3,7 @@ import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:run_route/SessionInProgress.dart';
-import 'package:run_route/data/blocs/home/home_bloc.dart';
+import 'package:run_route/data/blocs/home/bottom_navigation_bloc.dart';
 import 'package:run_route/data/database/presets_db.dart';
 import 'package:run_route/data/database/running_session_db.dart';
 
@@ -85,7 +85,7 @@ class Providers extends StatelessWidget {
         BlocProvider(
             create: (context) =>
                 RunningSessionBloc(context.read<RunningSessionDatabase>())),
-        BlocProvider(create: (context) => HomeBloc()),
+        BlocProvider(create: (context) => BottomNavigationBloc()),
       ],
       child: HomePage(),
     );
@@ -110,7 +110,8 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+    return BlocBuilder<BottomNavigationBloc, BottomNavigationState>(
+        builder: (context, state) {
       return LayoutBuilder(builder: (context, constrainsts) {
         return Scaffold(
           body: buildBody(state.selectedTab),
@@ -118,7 +119,7 @@ class HomePage extends StatelessWidget {
             currentIndex: state.selectedTab.index,
             items: state.includeSession ? (pages + [sessionPage]) : pages,
             onTap: (value) {
-              context.read<HomeBloc>().add(TabChangedEvent(value));
+              context.read<BottomNavigationBloc>().add(TabChangedEvent(value));
             },
           ),
         );

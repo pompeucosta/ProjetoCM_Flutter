@@ -3,6 +3,7 @@ import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:run_route/SessionInProgress.dart';
+import 'package:run_route/data/blocs/home/home_bloc.dart';
 import 'package:run_route/data/database/presets_db.dart';
 import 'package:run_route/data/database/running_session_db.dart';
 
@@ -65,14 +66,14 @@ class MyApp extends StatelessWidget {
           colorScheme: schemeDark,
           useMaterial3: true,
         ),
-        home: const TestPage(),
+        home: const Providers(),
       ),
     );
   }
 }
 
-class TestPage extends StatelessWidget {
-  const TestPage({super.key});
+class Providers extends StatelessWidget {
+  const Providers({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -84,56 +85,71 @@ class TestPage extends StatelessWidget {
         BlocProvider(
             create: (context) =>
                 RunningSessionBloc(context.read<RunningSessionDatabase>())),
+        BlocProvider(create: (context) => HomeBloc()),
       ],
-      child: const MyHomePage(),
+      child: HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  var selectedIndex = 0;
-
-  final List<Widget> pages = [
-    const GreetingsPage(),
-    const PresetsPage(),
-    const RunningSessionView(),
+class HomePage extends StatelessWidget {
+  HomePage({super.key});
+  final List<BottomNavigationBarItem> pages = [
+    const BottomNavigationBarItem(
+      icon: Icon(Icons.home),
+      label: "Home",
+    ),
+    const BottomNavigationBarItem(
+      icon: Icon(Icons.list),
+      label: "Presets",
+    ),
   ];
+
+  final BottomNavigationBarItem sessionPage =
+      const BottomNavigationBarItem(icon: Icon(Icons.list), label: "Session");
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      return Scaffold(
-        body: pages[selectedIndex],
-        bottomNavigationBar: BottomNavigationBar(
-            currentIndex: selectedIndex,
-            onTap: (index) {
-              setState(() {
-                selectedIndex = index;
-              });
+    return BlocBuilder<HomeBloc, HomeState>(builder: (context, state) {
+      return LayoutBuilder(builder: (context, constrainsts) {
+        return Scaffold(
+          body: buildBody(state.selectedTab),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: state.selectedTab.index,
+            items: state.includeSession ? (pages + [sessionPage]) : pages,
+            onTap: (value) {
+              context.read<HomeBloc>().add(TabChangedEvent(value));
             },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: "Home",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.list),
-                label: "Presets",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.list),
-                label: "Session",
-              ),
-            ]),
-      );
+          ),
+        );
+      });
     });
+  }
+
+  Widget buildBody(AppTab selectedTab) {
+    switch (selectedTab) {
+      case AppTab.home:
+        return const GreetingsPage();
+      case AppTab.presets:
+        return const PresetsPage();
+      case AppTab.session:
+        return const RunningSessionScreen();
+      case AppTab.history:
+        return const Placeholder();
+    }
+  }
+
+  int tabToIndex(AppTab selectedTab) {
+    switch (selectedTab) {
+      case AppTab.home:
+        return 0;
+      case AppTab.presets:
+        return 1;
+      case AppTab.session:
+        return 2;
+      case AppTab.history:
+        return 0;
+    }
   }
 }
 

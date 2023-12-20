@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:run_route/data/blocs/home/home_bloc.dart';
 import 'package:run_route/data/blocs/running_session/running_session_bloc.dart';
 import 'SessionInProgress.dart';
 import 'data/blocs/presets/presets_bloc.dart';
@@ -38,8 +39,11 @@ class ListCard extends StatelessWidget {
               ],
             ),
           )),
-      onPressed: () async {
+      onPressed: () {
+        final homeBloc = context.read<HomeBloc>();
+        homeBloc.add(const SessionStartedEvent());
         context.read<RunningSessionBloc>().add(StartSessionEvent(preset));
+        homeBloc.add(TabChangedEvent(AppTab.session.index));
       },
     );
   }

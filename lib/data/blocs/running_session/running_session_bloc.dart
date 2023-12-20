@@ -26,7 +26,8 @@ class RunningSessionBloc
     on<StartSessionEvent>((event, emit) async {
       try {
         preset = event.preset;
-        emit(state.copyWith(status: RunningSessionStatus.inProgress));
+        emit(
+            const RunningSessionState(status: RunningSessionStatus.inProgress));
         await timer?.cancel();
         timer =
             Stream.periodic(const Duration(seconds: 1), (elapsed) => elapsed)
@@ -34,9 +35,7 @@ class RunningSessionBloc
           this.duration = duration;
           add(_TimerTicked(duration));
         });
-        print("started");
       } catch (err) {
-        print(err.toString());
         emit(state.copyWith(status: RunningSessionStatus.failure));
       }
     });

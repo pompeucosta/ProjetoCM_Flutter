@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:run_route/data/models/session_details.dart';
 
-class RunningSessionDatabase {
+class SessionDatabase {
   static const String boxName = "running_session";
   late Box<SessionDetails> sessionDetails;
 

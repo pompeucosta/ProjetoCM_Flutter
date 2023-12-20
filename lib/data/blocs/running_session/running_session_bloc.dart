@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:run_route/data/database/running_session_db.dart';
+import 'package:run_route/data/database/session_db.dart';
 import 'package:run_route/data/models/preset.dart';
 import 'package:run_route/data/models/session_details.dart';
 
@@ -11,7 +11,7 @@ part 'running_session_state.dart';
 
 class RunningSessionBloc
     extends Bloc<RunningSessionEvent, RunningSessionState> {
-  final RunningSessionDatabase sessionDB;
+  final SessionDatabase sessionDB;
   late Preset preset;
   StreamSubscription<int>? timer;
   int duration = 0;

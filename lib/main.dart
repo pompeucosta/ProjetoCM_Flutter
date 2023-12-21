@@ -113,7 +113,7 @@ class HomePage extends StatelessWidget {
       label: "Presets",
     ),
     const BottomNavigationBarItem(
-      icon: Icon(Icons.list),
+      icon: Icon(Icons.history),
       label: "History",
     ),
   ];
@@ -125,20 +125,18 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<BottomNavigationBloc, BottomNavigationState>(
         builder: (context, state) {
-      return LayoutBuilder(builder: (context, constrainsts) {
-        return Scaffold(
-          body: buildBody(state.selectedTab),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: state.selectedTab.index,
-            items: state.includeSession ? (pages + [sessionPage]) : pages,
-            onTap: (value) {
-              context.read<BottomNavigationBloc>().add(TabChangedEvent(value));
-            },
-            selectedItemColor: Colors.blue[500],
-            unselectedItemColor: Colors.blue[200],
-          ),
-        );
-      });
+      return Scaffold(
+        body: buildBody(state.selectedTab),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: state.selectedTab.index,
+          items: state.includeSession ? (pages + [sessionPage]) : pages,
+          onTap: (value) {
+            context.read<BottomNavigationBloc>().add(TabChangedEvent(value));
+          },
+          selectedItemColor: Colors.blue[500],
+          unselectedItemColor: Colors.blue[200],
+        ),
+      );
     });
   }
 
@@ -149,8 +147,7 @@ class HomePage extends StatelessWidget {
       case AppTab.presets:
         return const PresetsPage();
       case AppTab.session:
-        return const GreetingsPage();
-      // return const RunningSessionScreen();
+        return const RunningSessionScreen();
       case AppTab.history:
         return const HistoryPage();
     }
@@ -166,13 +163,15 @@ class GreetingsPage extends StatelessWidget {
       appBar: AppBar(
         title: const Center(child: Text("Welcome")),
       ),
-      body: Center(
-        child: BlocBuilder<SessionsBloc, SessionsState>(
-          builder: (context, state) {
-            return state.sessions.isEmpty
-                ? const NoSession()
-                : Session(state.sessions.first);
-          },
+      body: SingleChildScrollView(
+        child: Center(
+          child: BlocBuilder<SessionsBloc, SessionsState>(
+            builder: (context, state) {
+              return state.sessions.isEmpty
+                  ? const NoSession()
+                  : Session(state.sessions.first);
+            },
+          ),
         ),
       ),
     );
@@ -203,7 +202,6 @@ class Session extends StatelessWidget {
     return Column(
       children: [
         DateDisplay(session.day, session.month, session.year),
-        // const MyMap(),
         DetailsContainer(session),
       ],
     );
@@ -221,36 +219,6 @@ class DateDisplay extends StatelessWidget {
     return Center(
       child: Text("Session of $day-$month-$year"),
     );
-  }
-}
-
-class MyMap extends StatelessWidget {
-  const MyMap({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Flexible(
-        child: FlutterMap(
-      options: const MapOptions(
-        initialCenter: LatLng(40.63311541916194, -8.659546357913722),
-        initialZoom: 9.2,
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'com.example.app',
-        ),
-        RichAttributionWidget(
-          attributions: [
-            TextSourceAttribution(
-              'OpenStreetMap contributors',
-              onTap: () =>
-                  launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
-            ),
-          ],
-        ),
-      ],
-    ));
   }
 }
 
@@ -276,18 +244,10 @@ class DetailsContainer extends StatelessWidget {
               )
             ],
           ),
-          children: <Widget>[
-            Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(0),
-                child: Column(
-                  children: [
-                    SessionDetailsScreen(state),
-                    const Divider(),
-                  ],
-                )),
+          children: [
+            SessionDetailsScreen(state),
           ],
-        ),
+        )
       ],
     );
   }
@@ -303,9 +263,7 @@ class SessionDetailsScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SessionInfo(
@@ -334,7 +292,7 @@ class SessionDetailsScreen extends StatelessWidget {
               info: "${state.caloriesBurned}",
             ),
           ],
-        )),
+        ),
       ],
     );
   }

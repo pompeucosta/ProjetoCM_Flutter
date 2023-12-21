@@ -14,7 +14,7 @@ class RunningSessionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: RunningSessionView(),
+      body: SingleChildScrollView(child: RunningSessionView()),
     );
   }
 }
@@ -105,7 +105,6 @@ class DetailsContainer extends StatelessWidget {
           ),
           children: [
             Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SessionDetails(state),
                 const Divider(),
@@ -129,8 +128,7 @@ class SessionDetails extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Center(
-            child: Column(
+        Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -160,7 +158,7 @@ class SessionDetails extends StatelessWidget {
               info: "${state.caloriesBurned}",
             ),
           ],
-        )),
+        ),
       ],
     );
   }
@@ -254,11 +252,9 @@ class SessionInfo extends StatelessWidget {
           children: [
             Text(
               name,
-              style: Theme.of(context).textTheme.headlineSmall,
             ),
             Text(
               info,
-              style: Theme.of(context).textTheme.headlineSmall,
             ),
           ],
         ));

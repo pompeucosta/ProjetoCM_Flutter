@@ -17,22 +17,25 @@ class PresetAdapter extends TypeAdapter<Preset> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Preset(
-      fields[0] as String,
-      fields[1] as bool,
-      fields[2] as int,
+      name: fields[0] as String,
+      twoWay: fields[1] as bool,
+      durationInSeconds: fields[2] as int,
+      distance: fields[3] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Preset obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
       ..write(obj.twoWay)
       ..writeByte(2)
-      ..write(obj.durationInSecods);
+      ..write(obj.durationInSeconds)
+      ..writeByte(3)
+      ..write(obj.distance);
   }
 
   @override

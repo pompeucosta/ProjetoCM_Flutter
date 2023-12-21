@@ -9,8 +9,19 @@ class Preset extends HiveObject {
   @HiveField(1)
   bool twoWay = false;
   @HiveField(2)
-  int durationInSecods = 0;
-  Duration get duration => Duration(seconds: durationInSecods);
+  int durationInSeconds = 0;
+  @HiveField(3)
+  double distance = 1;
+  Duration get duration => Duration(seconds: durationInSeconds);
 
-  Preset(this.name, this.twoWay, this.durationInSecods);
+  Preset({
+    this.name = "",
+    this.twoWay = false,
+    this.durationInSeconds = 0,
+    double? distance,
+  }) {
+    if (distance != null) {
+      this.distance = distance;
+    }
+  }
 }

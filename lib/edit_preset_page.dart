@@ -16,6 +16,7 @@ class _EditPageState extends State<EditPage> {
   late TextEditingController hoursController;
   late TextEditingController minutesController;
   late TextEditingController secondsController;
+  late TextEditingController distanceController;
   late bool twoWay;
   late bool isEntryValid;
 
@@ -31,6 +32,8 @@ class _EditPageState extends State<EditPage> {
         text: ((widget.preset?.duration.inMinutes ?? 0) % 60).toString());
     secondsController = TextEditingController(
         text: ((widget.preset?.duration.inSeconds ?? 0) % 60).toString());
+    distanceController =
+        TextEditingController(text: widget.preset?.distance.toString() ?? "0");
     twoWay = widget.preset?.twoWay ?? false;
     isEntryValid = checkValidity();
   }
@@ -62,7 +65,7 @@ class _EditPageState extends State<EditPage> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
-                        RangeTextInputFormatter(min: 0, max: 59),
+                        RangeTextInputFormatter(min: 0, max: 23),
                       ],
                       onChanged: (value) => updateValidy(),
                       decoration: const InputDecoration(labelText: "Hours"),
@@ -95,9 +98,13 @@ class _EditPageState extends State<EditPage> {
                     )
                   ],
                 ),
-                const SizedBox(
-                  height: 16.0,
+                const SizedBox(height: 16.0),
+                TextField(
+                  controller: distanceController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: "Distance (km)"),
                 ),
+                const SizedBox(height: 16.0),
                 Row(
                   children: [
                     const Text("Two Way: "),
@@ -125,9 +132,11 @@ class _EditPageState extends State<EditPage> {
     int hours = int.tryParse(hoursController.text) ?? 0;
     int minutes = int.tryParse(minutesController.text) ?? 0;
     int seconds = int.tryParse(secondsController.text) ?? 0;
+    double distance = double.tryParse(distanceController.text) ?? -1;
 
     return (hours * 3600 + minutes * 60 + seconds) > 0 &&
-        nameController.text.isNotEmpty;
+        nameController.text.isNotEmpty &&
+        distance > 0;
   }
 
   void updateValidy() {
@@ -141,8 +150,14 @@ class _EditPageState extends State<EditPage> {
     int hours = int.tryParse(hoursController.text) ?? 0;
     int minutes = int.tryParse(minutesController.text) ?? 0;
     int seconds = int.tryParse(secondsController.text) ?? 0;
+    double distance = double.tryParse(distanceController.text) ?? 0;
 
-    Preset pr = Preset(name, twoWay, hours * 3600 + minutes * 60 + seconds);
+    Preset pr = Preset(
+      name: name,
+      twoWay: twoWay,
+      durationInSeconds: hours * 3600 + minutes * 60 + seconds,
+      distance: distance,
+    );
 
     Navigator.pop(context, pr);
   }

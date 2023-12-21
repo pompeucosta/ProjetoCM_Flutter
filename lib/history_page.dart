@@ -67,7 +67,7 @@ class HistorySessionInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Center(child: Text("Session"))),
-      body: Session(session),
+      body: SingleChildScrollView(child: Session(session)),
     );
   }
 }

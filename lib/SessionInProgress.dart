@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:run_route/data/blocs/bottom_navigation/bottom_navigation_bloc.dart';
 import 'package:run_route/data/blocs/running_session/running_session_bloc.dart';
+import 'package:run_route/data/blocs/sessions/sessions_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'CameraPreviewScreen.dart';
 
@@ -93,26 +95,23 @@ class DetailsContainer extends StatelessWidget {
         ExpansionTile(
           initiallyExpanded: true,
           controller: controller,
-          title: Row(
+          title: const Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
                 'Session Details',
-                style: Theme.of(context).textTheme.headlineSmall,
               )
             ],
           ),
-          children: <Widget>[
-            Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(0),
-                child: Column(
-                  children: [
-                    SessionDetails(state),
-                    const Divider(),
-                    const SessionButtons(),
-                  ],
-                )),
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SessionDetails(state),
+                const Divider(),
+                SessionButtons(state.status),
+              ],
+            ),
           ],
         ),
       ],
@@ -130,7 +129,8 @@ class SessionDetails extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Column(
+        Center(
+            child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -147,12 +147,6 @@ class SessionDetails extends StatelessWidget {
               name: "Top Speed:",
               info: "${state.topSpeed}",
             ),
-          ],
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
             SessionInfo(
               name: "Distance:",
               info: "${state.distance}",
@@ -166,14 +160,15 @@ class SessionDetails extends StatelessWidget {
               info: "${state.caloriesBurned}",
             ),
           ],
-        ),
+        )),
       ],
     );
   }
 }
 
 class SessionButtons extends StatelessWidget {
-  const SessionButtons({super.key});
+  const SessionButtons(this.sessionStatus, {super.key});
+  final RunningSessionStatus sessionStatus;
 
   void _goToCamera(BuildContext context) {
     Navigator.push(
@@ -188,31 +183,57 @@ class SessionButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-            padding: const EdgeInsets.all(15),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomButton(text: "Pause", onPressed: () {}),
-                CustomButton(
-                  text: "Take Photo",
-                  onPressed: () {
-                    _goToCamera(context);
-                  },
-                )
-              ],
-            )),
-        Container(
-            padding: const EdgeInsets.all(0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomButton(text: "Cancel", onPressed: () {}),
-                CustomButton(text: "Finish", onPressed: () {}),
-              ],
-            )),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IconButton(
+                onPressed: () {
+                  context
+                      .read<RunningSessionBloc>()
+                      .add(const PauseUnpauseSessionEvent());
+                },
+                icon: sessionStatus == RunningSessionStatus.inProgress
+                    ? const Icon(Icons.pause)
+                    : const Icon(Icons.play_arrow)),
+            IconButton(
+                onPressed: () {
+                  _goToCamera(context);
+                },
+                icon: const Icon(Icons.camera_alt))
+          ],
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextButton(
+                child: const Text("Cancel"),
+                onPressed: () {
+                  context
+                      .read<RunningSessionBloc>()
+                      .add(const CancelSessionEvent());
+
+                  context
+                      .read<BottomNavigationBloc>()
+                      .add(const SessionEndedEvent());
+                }),
+            TextButton(
+                child: const Text("Finish"),
+                onPressed: () {
+                  context
+                      .read<RunningSessionBloc>()
+                      .add(const EndSessionEvent());
+
+                  //update history and home pages
+                  context.read<SessionsBloc>().add(const GetSessionsEvent());
+
+                  context
+                      .read<BottomNavigationBloc>()
+                      .add(const SessionEndedEvent());
+                }),
+          ],
+        ),
       ],
     );
   }
@@ -241,29 +262,5 @@ class SessionInfo extends StatelessWidget {
             ),
           ],
         ));
-  }
-}
-
-class CustomButton extends StatelessWidget {
-  const CustomButton({super.key, required this.text, required this.onPressed});
-
-  final String text;
-  final void Function() onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    ButtonStyle style = TextButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary);
-
-    return Container(
-        width: 170,
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-        child: ElevatedButton(
-            style: style,
-            onPressed: onPressed,
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.headlineSmall,
-            )));
   }
 }

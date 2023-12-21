@@ -1,6 +1,6 @@
 part of 'bottom_navigation_bloc.dart';
 
-enum AppTab { home, presets, session, history }
+enum AppTab { home, presets, history, session }
 
 final class BottomNavigationState extends Equatable {
   const BottomNavigationState(

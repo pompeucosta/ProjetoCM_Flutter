@@ -19,15 +19,8 @@ final class EndSessionEvent extends RunningSessionEvent {
   List<Object?> get props => [];
 }
 
-final class PauseSessionEvent extends RunningSessionEvent {
-  const PauseSessionEvent();
-
-  @override
-  List<Object?> get props => [];
-}
-
-final class UnPauseSessionEvent extends RunningSessionEvent {
-  const UnPauseSessionEvent();
+final class PauseUnpauseSessionEvent extends RunningSessionEvent {
+  const PauseUnpauseSessionEvent();
 
   @override
   List<Object?> get props => [];

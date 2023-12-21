@@ -15,10 +15,10 @@ class BottomNavigationBloc
       }
     });
     on<SessionStartedEvent>((event, emit) {
-      emit(state.copyWith(includeSession: true));
+      emit(state.copyWith(includeSession: true, selectedTab: AppTab.session));
     });
     on<SessionEndedEvent>((event, emit) {
-      emit(state.copyWith(includeSession: false));
+      emit(state.copyWith(includeSession: false, selectedTab: AppTab.home));
     });
   }
 }

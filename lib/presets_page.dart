@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:run_route/data/blocs/home/bottom_navigation_bloc.dart';
+import 'package:run_route/data/blocs/bottom_navigation/bottom_navigation_bloc.dart';
 import 'package:run_route/data/blocs/running_session/running_session_bloc.dart';
 import 'data/blocs/presets/presets_bloc.dart';
 import 'edit_preset_page.dart';
@@ -17,34 +17,71 @@ class ListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      child: Card(
-          margin: const EdgeInsets.all(8.0),
-          child: ListTile(
-            title: Text(preset.name),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                    "${preset.duration.inHours.toString().padLeft(2, '0')}:${(preset.duration.inMinutes % 60).toString().padLeft(2, '0')}:${(preset.duration.inSeconds % 60).toString().padLeft(2, '0')}"),
-                if (preset.twoWay) const Text("Two way"),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(onPressed: onEdit, icon: const Icon(Icons.edit)),
-                IconButton(onPressed: onDelete, icon: const Icon(Icons.delete))
-              ],
-            ),
-          )),
+    return TextButton(
       onPressed: () {
         final homeBloc = context.read<BottomNavigationBloc>();
         homeBloc.add(const SessionStartedEvent());
         context.read<RunningSessionBloc>().add(StartSessionEvent(preset));
-        homeBloc.add(TabChangedEvent(AppTab.session.index));
       },
+      style: TextButton.styleFrom(
+        backgroundColor: Colors.transparent,
+        side: BorderSide.none,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+        ),
+        padding: const EdgeInsets.all(0.0),
+      ),
+      child: Card(
+        margin: const EdgeInsets.all(8.0),
+        child: ListTile(
+          title: Text(preset.name),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "${preset.duration.inHours.toString().padLeft(2, '0')}:${(preset.duration.inMinutes % 60).toString().padLeft(2, '0')}:${(preset.duration.inSeconds % 60).toString().padLeft(2, '0')}",
+              ),
+              if (preset.twoWay) const Text("Two way"),
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(onPressed: onEdit, icon: const Icon(Icons.edit)),
+              IconButton(onPressed: onDelete, icon: const Icon(Icons.delete)),
+            ],
+          ),
+        ),
+      ),
     );
+    // ElevatedButton(
+    //   child: Card(
+    //       margin: const EdgeInsets.all(8.0),
+    //       child: ListTile(
+    //         title: Text(preset.name),
+    //         subtitle: Column(
+    //           crossAxisAlignment: CrossAxisAlignment.start,
+    //           children: [
+    //             Text(
+    //                 "${preset.duration.inHours.toString().padLeft(2, '0')}:${(preset.duration.inMinutes % 60).toString().padLeft(2, '0')}:${(preset.duration.inSeconds % 60).toString().padLeft(2, '0')}"),
+    //             if (preset.twoWay) const Text("Two way"),
+    //           ],
+    //         ),
+    //         trailing: Row(
+    //           mainAxisSize: MainAxisSize.min,
+    //           children: [
+    //             IconButton(onPressed: onEdit, icon: const Icon(Icons.edit)),
+    //             IconButton(onPressed: onDelete, icon: const Icon(Icons.delete))
+    //           ],
+    //         ),
+    //       )),
+    //   onPressed: () {
+    //     final homeBloc = context.read<BottomNavigationBloc>();
+    //     homeBloc.add(const SessionStartedEvent());
+    //     context.read<RunningSessionBloc>().add(StartSessionEvent(preset));
+    //     // homeBloc.add(TabChangedEvent(AppTab.session.index));
+    //   },
+    // );
   }
 }
 

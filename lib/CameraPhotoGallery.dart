@@ -9,14 +9,12 @@ class CameraGalleryScreen extends StatefulWidget {
 }
 
 class _CameraGalleryScreenState extends State<CameraGalleryScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: PhotoTakenContent(),
     );
   }
- 
 }
 
 class PhotoTakenContent extends StatefulWidget {
@@ -27,19 +25,14 @@ class PhotoTakenContent extends StatefulWidget {
 }
 
 class _PhotoTakenContentState extends State<PhotoTakenContent> {
+  void _takePhoto() {}
 
-void _takePhoto() {
-  
-}
-
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-          body: CameraPreview(),
-        );
-
+      body: CameraPreview(),
+    );
   }
-
 }
 
 class CameraPreview extends StatefulWidget {
@@ -50,23 +43,21 @@ class CameraPreview extends StatefulWidget {
 }
 
 class _CameraPreviewState extends State<CameraPreview> {
-
- @override
+  @override
   Widget build(BuildContext context) {
     return Container(
-               decoration: BoxDecoration(
-                  image: DecorationImage(
-                fit: BoxFit.cover,
-                image: AssetImage(
-                  "images/camerapreview.jpg", bundle: DefaultAssetBundle.of(context),
-                ),
-              )),
-              alignment: Alignment.bottomCenter,
-              child: PhotoOptions(),
-           );
-  
+      decoration: BoxDecoration(
+          image: DecorationImage(
+        fit: BoxFit.cover,
+        image: AssetImage(
+          "images/camerapreview.jpg",
+          bundle: DefaultAssetBundle.of(context),
+        ),
+      )),
+      alignment: Alignment.bottomCenter,
+      child: PhotoOptions(),
+    );
   }
-  
 }
 
 class PhotoOptions extends StatefulWidget {
@@ -77,24 +68,28 @@ class PhotoOptions extends StatefulWidget {
 }
 
 class _PhotoOptionsState extends State<PhotoOptions> {
-
-void _returnToLastScreen() {
-      Navigator.pop(context);
+  void _returnToLastScreen() {
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-                      child: Row( mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(padding: EdgeInsets.all(10),
-                                              child: CustomButton(text: "Discard", onPressed: _returnToLastScreen,)),
-                                    Container(padding: EdgeInsets.all(10),
-                                              child: CustomButton(text: "Save photo", onPressed: _returnToLastScreen,)),
-                                  ]  
-                              )
-                    );
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+              padding: const EdgeInsets.all(10),
+              child: TextButton(
+                onPressed: _returnToLastScreen,
+                child: const Text("Discard"),
+              )),
+          Container(
+              padding: const EdgeInsets.all(10),
+              child: TextButton(
+                onPressed: _returnToLastScreen,
+                child: const Text("Save photo"),
+              )),
+        ]);
   }
-
 }

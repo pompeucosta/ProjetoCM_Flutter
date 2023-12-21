@@ -54,19 +54,12 @@ class RunningSessionBloc
         emit(state.copyWith(status: RunningSessionStatus.failure));
       }
     });
-    on<PauseSessionEvent>((event, emit) {
+    on<PauseUnpauseSessionEvent>((event, emit) {
       try {
         if (state.status == RunningSessionStatus.inProgress) {
           timer?.pause();
           emit(state.copyWith(status: RunningSessionStatus.paused));
-        }
-      } catch (err) {
-        emit(state.copyWith(status: RunningSessionStatus.failure));
-      }
-    });
-    on<UnPauseSessionEvent>((event, emit) {
-      try {
-        if (state.status == RunningSessionStatus.paused) {
+        } else if (state.status == RunningSessionStatus.paused) {
           timer?.resume();
           emit(state.copyWith(status: RunningSessionStatus.inProgress));
         }

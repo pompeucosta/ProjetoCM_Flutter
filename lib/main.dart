@@ -5,11 +5,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:run_route/SessionInProgress.dart';
-import 'package:run_route/data/blocs/home/bottom_navigation_bloc.dart';
+import 'package:run_route/data/blocs/bottom_navigation/bottom_navigation_bloc.dart';
 import 'package:run_route/data/blocs/sessions/sessions_bloc.dart';
 import 'package:run_route/data/database/presets_db.dart';
 import 'package:run_route/data/database/session_db.dart';
-import 'package:run_route/data/models/session_details.dart' as SessionModel;
+import 'package:run_route/data/models/session_details.dart' as session_model;
+import 'package:run_route/history_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'data/blocs/presets/presets_bloc.dart';
@@ -34,9 +35,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primarySeedColor = Color(0xFF6750A4);
-    const Color secondarySeedColor = Color(0xFF3871BB);
-    const Color tertiarySeedColor = Color(0xFF6CA450);
+    const Color primarySeedColor = Color(0xFF1456fc);
+    const Color secondarySeedColor = Color(0xFF4614fc);
+    const Color tertiarySeedColor = Color(0xFF14cafc);
 
     final ColorScheme schemeLight = SeedColorScheme.fromSeeds(
       brightness: Brightness.light,
@@ -92,7 +93,8 @@ class Providers extends StatelessWidget {
                 RunningSessionBloc(context.read<SessionDatabase>())),
         BlocProvider(create: (context) => BottomNavigationBloc()),
         BlocProvider(
-            create: (context) => SessionsBloc(context.read<SessionDatabase>()))
+            create: (context) => SessionsBloc(context.read<SessionDatabase>())
+              ..add(const GetSessionsEvent()))
       ],
       child: HomePage(),
     );
@@ -109,6 +111,10 @@ class HomePage extends StatelessWidget {
     const BottomNavigationBarItem(
       icon: Icon(Icons.list),
       label: "Presets",
+    ),
+    const BottomNavigationBarItem(
+      icon: Icon(Icons.list),
+      label: "History",
     ),
   ];
 
@@ -128,6 +134,8 @@ class HomePage extends StatelessWidget {
             onTap: (value) {
               context.read<BottomNavigationBloc>().add(TabChangedEvent(value));
             },
+            selectedItemColor: Colors.blue[500],
+            unselectedItemColor: Colors.blue[200],
           ),
         );
       });
@@ -141,22 +149,10 @@ class HomePage extends StatelessWidget {
       case AppTab.presets:
         return const PresetsPage();
       case AppTab.session:
-        return const RunningSessionScreen();
+        return const GreetingsPage();
+      // return const RunningSessionScreen();
       case AppTab.history:
-        return const Placeholder();
-    }
-  }
-
-  int tabToIndex(AppTab selectedTab) {
-    switch (selectedTab) {
-      case AppTab.home:
-        return 0;
-      case AppTab.presets:
-        return 1;
-      case AppTab.session:
-        return 2;
-      case AppTab.history:
-        return 0;
+        return const HistoryPage();
     }
   }
 }
@@ -175,12 +171,7 @@ class GreetingsPage extends StatelessWidget {
           builder: (context, state) {
             return state.sessions.isEmpty
                 ? const NoSession()
-                : Column(
-                    children: [
-                      const MyMap(),
-                      DetailsContainer(state.sessions.first)
-                    ],
-                  );
+                : Session(state.sessions.first);
           },
         ),
       ),
@@ -194,8 +185,42 @@ class NoSession extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-        child: Text(
-            "Welcome to Run Route!\nTry creating a preset and start running."));
+        child: Column(
+      children: [
+        Text("Welcome to Run Route!"),
+        Text("Try creating a preset and start running."),
+      ],
+    ));
+  }
+}
+
+class Session extends StatelessWidget {
+  const Session(this.session, {super.key});
+  final session_model.SessionDetails session;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        DateDisplay(session.day, session.month, session.year),
+        // const MyMap(),
+        DetailsContainer(session),
+      ],
+    );
+  }
+}
+
+class DateDisplay extends StatelessWidget {
+  const DateDisplay(this.day, this.month, this.year, {super.key});
+  final int year;
+  final int month;
+  final int day;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text("Session of $day-$month-$year"),
+    );
   }
 }
 
@@ -233,7 +258,7 @@ class DetailsContainer extends StatelessWidget {
   DetailsContainer(this.state, {super.key});
   final ExpansionTileController controller = ExpansionTileController();
   final DateTime sessionStartTime = DateTime.now();
-  final SessionModel.SessionDetails state;
+  final session_model.SessionDetails state;
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +284,6 @@ class DetailsContainer extends StatelessWidget {
                   children: [
                     SessionDetailsScreen(state),
                     const Divider(),
-                    const SessionButtons(),
                   ],
                 )),
           ],
@@ -270,7 +294,7 @@ class DetailsContainer extends StatelessWidget {
 }
 
 class SessionDetailsScreen extends StatelessWidget {
-  final SessionModel.SessionDetails state;
+  final session_model.SessionDetails state;
   const SessionDetailsScreen(this.state, {super.key});
 
   @override
@@ -279,7 +303,8 @@ class SessionDetailsScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Column(
+        Center(
+            child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -296,12 +321,6 @@ class SessionDetailsScreen extends StatelessWidget {
               name: "Top Speed:",
               info: "${state.topSpeed}",
             ),
-          ],
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
             SessionInfo(
               name: "Distance:",
               info: "${state.distance}",
@@ -315,7 +334,7 @@ class SessionDetailsScreen extends StatelessWidget {
               info: "${state.caloriesBurned}",
             ),
           ],
-        ),
+        )),
       ],
     );
   }

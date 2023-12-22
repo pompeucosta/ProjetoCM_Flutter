@@ -12,8 +12,8 @@ class NotificationChanngelsProperties {
       "RunRoute channel to keep the session active even when the app is closed or minimized";
 }
 
-class NotificationController {
-  @pragma("vm:entry-point")
-  static Future<void> onActionReceivedMethod(
-      ReceivedAction receivedAction) async {}
-}
+// class NotificationController {
+//   @pragma("vm:entry-point")
+//   static Future<void> onActionReceivedMethod(
+//       ReceivedAction receivedAction) async {}
+// }

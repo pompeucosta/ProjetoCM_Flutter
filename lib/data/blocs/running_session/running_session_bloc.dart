@@ -37,8 +37,8 @@ class RunningSessionBloc
       }
     });
 
-    AwesomeNotifications().setListeners(
-        onActionReceivedMethod: NotificationController.onActionReceivedMethod);
+    // AwesomeNotifications().setListeners(
+    //     onActionReceivedMethod: NotificationController.onActionReceivedMethod);
     on<StartSessionEvent>((event, emit) async {
       try {
         preset = event.preset;
@@ -70,7 +70,7 @@ class RunningSessionBloc
           preset.durationInSeconds / 2 <= event.durationInSeconds) {
         timeWarned = true;
         sendNotification(
-            "You have reached half of your time goal! It's time to go back.");
+            "You have reached half of your time goal!\nIt's time to go back.");
       }
     }));
     on<EndSessionEvent>((event, emit) async {
@@ -133,6 +133,7 @@ class RunningSessionBloc
       channelKey: NotificationChanngelsProperties.notificationsChannelKey,
       title: "Goal",
       body: message,
+      notificationLayout: NotificationLayout.BigText,
     ));
   }
 }

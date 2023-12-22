@@ -51,6 +51,7 @@ class _EditPageState extends State<EditPage> {
                 TextField(
                   controller: nameController,
                   decoration: const InputDecoration(labelText: "Name"),
+                  onChanged: (value) => updateValidity(),
                 ),
                 const SizedBox(
                   height: 16,
@@ -67,7 +68,7 @@ class _EditPageState extends State<EditPage> {
                         FilteringTextInputFormatter.digitsOnly,
                         RangeTextInputFormatter(min: 0, max: 23),
                       ],
-                      onChanged: (value) => updateValidy(),
+                      onChanged: (value) => updateValidity(),
                       decoration: const InputDecoration(labelText: "Hours"),
                     )),
                     const SizedBox(width: 8),
@@ -79,7 +80,7 @@ class _EditPageState extends State<EditPage> {
                           FilteringTextInputFormatter.digitsOnly,
                           RangeTextInputFormatter(min: 0, max: 59),
                         ],
-                        onChanged: (value) => updateValidy(),
+                        onChanged: (value) => updateValidity(),
                         decoration: const InputDecoration(labelText: "Minutes"),
                       ),
                     ),
@@ -92,7 +93,7 @@ class _EditPageState extends State<EditPage> {
                           FilteringTextInputFormatter.digitsOnly,
                           RangeTextInputFormatter(min: 0, max: 59),
                         ],
-                        onChanged: (value) => updateValidy(),
+                        onChanged: (value) => updateValidity(),
                         decoration: const InputDecoration(labelText: "Seconds"),
                       ),
                     )
@@ -103,6 +104,7 @@ class _EditPageState extends State<EditPage> {
                   controller: distanceController,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: "Distance (km)"),
+                  onChanged: (value) => updateValidity(),
                 ),
                 const SizedBox(height: 16.0),
                 Row(
@@ -139,7 +141,7 @@ class _EditPageState extends State<EditPage> {
         distance > 0;
   }
 
-  void updateValidy() {
+  void updateValidity() {
     setState(() {
       isEntryValid = checkValidity();
     });

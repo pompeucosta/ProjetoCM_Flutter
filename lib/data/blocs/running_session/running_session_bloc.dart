@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:run_route/data/database/session_db.dart';
 import 'package:run_route/data/models/preset.dart';
 import 'package:run_route/data/models/session_details.dart';
+import 'package:run_route/services/notification_controller.dart';
 
 part 'running_session_event.dart';
 part 'running_session_state.dart';
@@ -16,6 +18,9 @@ class RunningSessionBloc
   StreamSubscription<int>? timer;
   int duration = 0;
 
+  bool isAllowedToSendNotification = false;
+  bool timeWarned = false;
+
   @override
   Future<void> close() {
     timer?.cancel();
@@ -23,6 +28,17 @@ class RunningSessionBloc
   }
 
   RunningSessionBloc(this.sessionDB) : super(const RunningSessionState()) {
+    AwesomeNotifications().isNotificationAllowed().then((value) {
+      isAllowedToSendNotification = value;
+      if (!isAllowedToSendNotification) {
+        AwesomeNotifications()
+            .requestPermissionToSendNotifications()
+            .then((value) => isAllowedToSendNotification = value);
+      }
+    });
+
+    AwesomeNotifications().setListeners(
+        onActionReceivedMethod: NotificationController.onActionReceivedMethod);
     on<StartSessionEvent>((event, emit) async {
       try {
         preset = event.preset;
@@ -41,6 +57,21 @@ class RunningSessionBloc
     });
     on<_TimerTicked>(((event, emit) {
       emit(state.copyWith(durationInSeconds: event.durationInSeconds));
+      if (!timeWarned &&
+          isAllowedToSendNotification &&
+          preset.durationInSeconds <= event.durationInSeconds) {
+        timeWarned = true;
+        sendNotification("You have reached your time goal!");
+      }
+
+      if (!timeWarned &&
+          isAllowedToSendNotification &&
+          preset.twoWay &&
+          preset.durationInSeconds / 2 <= event.durationInSeconds) {
+        timeWarned = true;
+        sendNotification(
+            "You have reached half of your time goal! It's time to go back.");
+      }
     }));
     on<EndSessionEvent>((event, emit) async {
       try {
@@ -93,5 +124,15 @@ class RunningSessionBloc
         emit(state.copyWith(status: RunningSessionStatus.failure));
       }
     });
+  }
+
+  void sendNotification(String message) {
+    AwesomeNotifications().createNotification(
+        content: NotificationContent(
+      id: 1,
+      channelKey: NotificationChanngelsProperties.notificationsChannelKey,
+      title: "Goal",
+      body: message,
+    ));
   }
 }

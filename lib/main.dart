@@ -1,7 +1,7 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:latlong2/latlong.dart';
@@ -14,31 +14,41 @@ import 'package:run_route/data/models/session_details.dart' as session_model;
 import 'package:run_route/history_page.dart';
 import 'package:run_route/services/notification_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'data/blocs/presets/presets_bloc.dart';
 import 'data/blocs/running_session/running_session_bloc.dart';
 import 'presets_page.dart';
 
 void main() async {
-  await AwesomeNotifications().initialize(null, [
-    NotificationChannel(
-      channelKey: NotificationChanngelsProperties.notificationsChannelKey,
-      channelName: NotificationChanngelsProperties.notificationsChannelName,
-      channelDescription:
-          NotificationChanngelsProperties.notificationsChannelDescription,
-      channelGroupKey: "channel_group",
-    ),
-    NotificationChannel(
-      channelKey: NotificationChanngelsProperties.foregroundServiceChannelKey,
-      channelName: NotificationChanngelsProperties.foregroundServiceChannelName,
-      channelDescription:
-          NotificationChanngelsProperties.foregroundServiceChannelDescription,
-    ),
-  ], channelGroups: [
-    NotificationChannelGroup(
-        channelGroupKey: "channel_group",
-        channelGroupName: "RunRouteNotificationGroup")
-  ]);
+  WidgetsFlutterBinding.ensureInitialized();
+
+  AndroidNotificationChannel foreground = AndroidNotificationChannel(
+    NotificationChanngelsProperties.foregroundServiceChannelKey,
+    NotificationChanngelsProperties.foregroundServiceChannelName,
+    description:
+        NotificationChanngelsProperties.foregroundServiceChannelDescription,
+    importance: Importance.low,
+  );
+
+  AndroidNotificationChannel notifications = AndroidNotificationChannel(
+    NotificationChanngelsProperties.notificationsChannelKey,
+    NotificationChanngelsProperties.notificationsChannelName,
+    description:
+        NotificationChanngelsProperties.notificationsChannelDescription,
+  );
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  final plugin =
+      flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+
+  await plugin?.createNotificationChannel(foreground);
+  await plugin?.createNotificationChannel(notifications);
+
+  await initializeService();
 
   await Hive.initFlutter();
   final PresetsDatabase presetsdb = PresetsDatabase();

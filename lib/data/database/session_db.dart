@@ -17,9 +17,9 @@ class SessionDatabase {
   List<SessionDetails> getAllSessionsFromMostRecentToOlder() {
     final sessions = sessionDetails.values.toList();
     sessions.sort((a, b) {
-      final dateA = DateTime(a.year, a.month, a.day);
-      final dateB = DateTime(b.year, b.month, b.day);
-      return dateA.compareTo(dateB);
+      if (a.key < b.key) return 1;
+      if (a.key > b.key) return -1;
+      return 0;
     });
 
     return sessions;

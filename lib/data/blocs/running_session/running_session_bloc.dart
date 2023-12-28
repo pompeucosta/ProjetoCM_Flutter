@@ -27,8 +27,10 @@ class RunningSessionBloc
       FlutterLocalNotificationsPlugin();
 
   @override
-  Future<void> close() {
-    // timer?.cancel();
+  Future<void> close() async {
+    timer?.cancel();
+    final service = FlutterBackgroundService();
+    if (await service.isRunning()) service.invoke("stopService");
     return super.close();
   }
 
@@ -100,7 +102,8 @@ class RunningSessionBloc
             0, 0, duration, 0, 0, 0, today.day, today.month, today.year, "");
 
         await sessionDB.insertSession(details);
-        emit(state.copyWith(status: RunningSessionStatus.success));
+        emit(state.copyWith(status: RunningSessionStatus.ended));
+        emit(state.copyWith(status: RunningSessionStatus.initial));
       } catch (err) {
         emit(state.copyWith(status: RunningSessionStatus.failure));
       }

@@ -50,6 +50,9 @@ class HistoryList extends StatelessWidget {
             child: Card(
               child: ListTile(
                 title: Text("${session.day}-${session.month}-${session.year}"),
+                subtitle: Text(
+                  "${session.duration.inHours.toString().padLeft(2, '0')}:${(session.duration.inMinutes % 60).toString().padLeft(2, '0')}:${(session.duration.inSeconds % 60).toString().padLeft(2, '0')}",
+                ),
                 trailing: Text(session.location),
               ),
             ));

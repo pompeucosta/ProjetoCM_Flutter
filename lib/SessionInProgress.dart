@@ -37,6 +37,10 @@ class RunningSessionView extends StatelessWidget {
           break;
         case RunningSessionStatus.success:
           break;
+        case RunningSessionStatus.ended:
+          context.read<SessionsBloc>().add(const GetSessionsEvent());
+          context.read<BottomNavigationBloc>().add(const SessionEndedEvent());
+          break;
       }
     }, builder: (context, state) {
       return Column(
@@ -222,13 +226,6 @@ class SessionButtons extends StatelessWidget {
                   context
                       .read<RunningSessionBloc>()
                       .add(const EndSessionEvent());
-
-                  //update history and home pages
-                  context.read<SessionsBloc>().add(const GetSessionsEvent());
-
-                  context
-                      .read<BottomNavigationBloc>()
-                      .add(const SessionEndedEvent());
                 }),
           ],
         ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'SessionInProgress.dart';
 
 class CameraGalleryScreen extends StatefulWidget {
   const CameraGalleryScreen({super.key});

@@ -1,6 +1,13 @@
 part of 'running_session_bloc.dart';
 
-enum RunningSessionStatus { initial, paused, inProgress, success, failure }
+enum RunningSessionStatus {
+  initial,
+  paused,
+  inProgress,
+  success,
+  failure,
+  ended
+}
 
 final class RunningSessionState extends Equatable {
   final RunningSessionStatus status;

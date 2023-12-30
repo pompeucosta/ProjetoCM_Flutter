@@ -3,7 +3,7 @@ import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:run_route/SessionInProgress.dart';
+import 'package:run_route/session_in_progress.dart';
 import 'package:run_route/data/blocs/bottom_navigation/bottom_navigation_bloc.dart';
 import 'package:run_route/data/blocs/sessions/sessions_bloc.dart';
 import 'package:run_route/data/database/presets_db.dart';
@@ -15,6 +15,9 @@ import 'package:run_route/services/notification_controller.dart';
 import 'data/blocs/presets/presets_bloc.dart';
 import 'data/blocs/running_session/running_session_bloc.dart';
 import 'presets_page.dart';
+
+import 'package:camera/camera.dart';
+import 'data/blocs/camera_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,13 +56,17 @@ void main() async {
   final SessionDatabase sessiondb = SessionDatabase();
   await sessiondb.init();
 
-  runApp(MyApp(presetsdb, sessiondb));
+  final cameras = await availableCameras();
+  final camera = cameras.first;
+
+  runApp(MyApp(presetsdb, sessiondb, camera));
 }
 
 class MyApp extends StatelessWidget {
   final PresetsDatabase presetsdb;
   final SessionDatabase sessiondb;
-  const MyApp(this.presetsdb, this.sessiondb, {super.key});
+  final CameraDescription camera;
+  const MyApp(this.presetsdb, this.sessiondb, this.camera, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -100,14 +107,15 @@ class MyApp extends StatelessWidget {
           colorScheme: schemeDark,
           useMaterial3: true,
         ),
-        home: const Providers(),
+        home: Providers(camera),
       ),
     );
   }
 }
 
 class Providers extends StatelessWidget {
-  const Providers({super.key});
+  final CameraDescription camera;
+  const Providers(this.camera, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +130,8 @@ class Providers extends StatelessWidget {
         BlocProvider(create: (context) => BottomNavigationBloc()),
         BlocProvider(
             create: (context) => SessionsBloc(context.read<SessionDatabase>())
-              ..add(const GetSessionsEvent()))
+              ..add(const GetSessionsEvent())),
+        BlocProvider(create: (context) => CameraCubit(camera))
       ],
       child: SafeArea(
         child: HomePage(),

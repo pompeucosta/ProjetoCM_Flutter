@@ -18,7 +18,8 @@ class RunningSessionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: SingleChildScrollView(child: RunningSessionView()),
+      body: RunningSessionView()
+      //body: SingleChildScrollView(child: RunningSessionView()),
     );
   }
 }
@@ -49,8 +50,8 @@ class RunningSessionView extends StatelessWidget {
     }, builder: (context, state) {
       return Column(
         children: [
-          // const MyMap(),
-          DetailsContainer(state),
+          const MyMap(),
+          DetailsContainer(state), 
         ],
       );
     }, buildWhen: (previous, current) {
@@ -67,10 +68,10 @@ class MyMap extends StatelessWidget {
   Widget build(BuildContext context) {
     return Flexible(
         child: FlutterMap(
-      options: const MapOptions(
-        initialCenter: LatLng(40.63311541916194, -8.659546357913722),
-        initialZoom: 9.2,
-      ),
+              options: const MapOptions(
+              initialCenter: LatLng(40.63311541916194, -8.659546357913722),
+              initialZoom: 9.2,
+              ),
       children: [
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -100,7 +101,9 @@ class DetailsContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        ExpansionTile(
+        Container(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height),
+          child: ExpansionTile(
           initiallyExpanded: true,
           controller: controller,
           title: const Row(
@@ -112,16 +115,27 @@ class DetailsContainer extends StatelessWidget {
             ],
           ),
           children: [
-            Column(
-              children: [
-                SessionDetails(state),
-                const Divider(),
-                SessionButtons(state.status),
-              ],
-            ),
+            Container(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height - 150),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+                    child: SessionDetails(state),
+                  ),
+                  const Divider(),
+                  Container(
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+                    child: SessionButtons(state.status),
+                  )
+                  
+                ],
+              )
+            )
           ],
         ),
-      ],
+    )],
     );
   }
 }
@@ -153,6 +167,12 @@ class SessionDetails extends StatelessWidget {
               name: "Top Speed:",
               info: "${state.topSpeed}",
             ),
+          ],
+        ),
+         Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             SessionInfo(
               name: "Distance:",
               info: "${state.distance}",
@@ -255,9 +275,11 @@ class SessionInfo extends StatelessWidget {
           children: [
             Text(
               name,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
             Text(
               info,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ));

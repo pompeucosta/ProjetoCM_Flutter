@@ -13,30 +13,33 @@ final class RunningSessionState extends Equatable {
   final RunningSessionStatus status;
   final int durationInSeconds;
   final int stepsTaken;
-  final int averageSpeed;
-  final int topSpeed;
-  final int caloriesBurned;
-  final int distance;
+  final double averageSpeed;
+  final double topSpeed;
+  final double caloriesBurned;
+  final double distance;
+  final List<Position> coordinates;
 
   Duration get duration => Duration(seconds: durationInSeconds);
 
   const RunningSessionState(
       {this.status = RunningSessionStatus.initial,
-      this.averageSpeed = 0,
-      this.caloriesBurned = 0,
+      this.averageSpeed = 0.0,
+      this.caloriesBurned = 0.0,
       this.durationInSeconds = 0,
       this.stepsTaken = 0,
-      this.topSpeed = 0,
-      this.distance = 0});
+      this.topSpeed = 0.0,
+      this.distance = 0.0,
+      this.coordinates = const <Position>[] });
 
   RunningSessionState copyWith(
       {RunningSessionStatus? status,
       int? durationInSeconds,
       int? stepsTaken,
-      int? averageSpeed,
-      int? topSpeed,
-      int? caloriesBurned,
-      int? distance}) {
+      double? averageSpeed,
+      double? topSpeed,
+      double? caloriesBurned,
+      double? distance,
+      List<Position>? coordinates}) {
     return RunningSessionState(
         status: status ?? this.status,
         durationInSeconds: durationInSeconds ?? this.durationInSeconds,
@@ -44,7 +47,8 @@ final class RunningSessionState extends Equatable {
         averageSpeed: averageSpeed ?? this.averageSpeed,
         topSpeed: topSpeed ?? this.topSpeed,
         caloriesBurned: caloriesBurned ?? this.caloriesBurned,
-        distance: distance ?? this.distance);
+        distance: distance ?? this.distance,
+        coordinates: coordinates ?? this.coordinates);
   }
 
   @override
@@ -55,6 +59,7 @@ final class RunningSessionState extends Equatable {
         averageSpeed,
         topSpeed,
         caloriesBurned,
-        distance
+        distance,
+        coordinates
       ];
 }

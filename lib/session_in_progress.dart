@@ -8,9 +8,12 @@ import 'package:run_route/data/blocs/sessions/sessions_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'camera_preview_screen.dart';
 
-
 import 'data/blocs/camera_cubit.dart';
 import 'package:camera/camera.dart';
+
+import 'package:geolocator/geolocator.dart';
+
+import 'package:intl/intl.dart';
 
 class RunningSessionScreen extends StatelessWidget {
   const RunningSessionScreen({super.key});
@@ -19,7 +22,6 @@ class RunningSessionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: RunningSessionView()
-      //body: SingleChildScrollView(child: RunningSessionView()),
     );
   }
 }
@@ -29,6 +31,7 @@ class RunningSessionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    MapController mapControl = MapController(); 
     return BlocConsumer<RunningSessionBloc, RunningSessionState>(
         listener: (context, state) {
       switch (state.status) {
@@ -50,7 +53,7 @@ class RunningSessionView extends StatelessWidget {
     }, builder: (context, state) {
       return Column(
         children: [
-          const MyMap(),
+          MyMap(state,mapControl),
           DetailsContainer(state), 
         ],
       );
@@ -62,15 +65,35 @@ class RunningSessionView extends StatelessWidget {
 }
 
 class MyMap extends StatelessWidget {
-  const MyMap({super.key});
+  final RunningSessionState state;
+  final MapController mapControl;
+  const MyMap(this.state, this.mapControl, {super.key});
+
 
   @override
   Widget build(BuildContext context) {
+
+    LatLng currentPosition = const LatLng(40.63311541916194, -8.659546357913722);
+    if (state.coordinates.isNotEmpty) {
+      Position lastPosition = state.coordinates.last;
+      currentPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
+    
+      List<LatLng> coordinatesAsLatLng = <LatLng>[];
+      for (Position element in state.coordinates) {
+        coordinatesAsLatLng.add(LatLng(element.latitude, element.longitude));
+      }
+      mapControl.fitCamera(CameraFit.coordinates(coordinates: coordinatesAsLatLng, maxZoom: 17, padding: const EdgeInsets.all(50)));
+    }
+
+    
+
     return Flexible(
         child: FlutterMap(
-              options: const MapOptions(
-              initialCenter: LatLng(40.63311541916194, -8.659546357913722),
-              initialZoom: 9.2,
+              mapController: mapControl,
+              options: MapOptions(
+                initialCenter: currentPosition,
+                initialZoom: 9.2,
+                
               ),
       children: [
         TileLayer(
@@ -146,6 +169,8 @@ class SessionDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    NumberFormat distanceFormat = NumberFormat("####0.0##");
+    NumberFormat speedFormat = NumberFormat("####0.0");
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -161,11 +186,11 @@ class SessionDetails extends StatelessWidget {
             ),
             SessionInfo(
               name: "Average Speed:",
-              info: "${state.averageSpeed}",
+              info: "${speedFormat.format(state.averageSpeed)} km/h",
             ),
             SessionInfo(
               name: "Top Speed:",
-              info: "${state.topSpeed}",
+              info: "${speedFormat.format(state.topSpeed)} km/h",
             ),
           ],
         ),
@@ -175,7 +200,7 @@ class SessionDetails extends StatelessWidget {
           children: [
             SessionInfo(
               name: "Distance:",
-              info: "${state.distance}",
+              info: "${distanceFormat.format(state.distance)} m",
             ),
             SessionInfo(
               name: "Steps Taken:",
@@ -183,7 +208,7 @@ class SessionDetails extends StatelessWidget {
             ),
             SessionInfo(
               name: "Calories Burned:",
-              info: "${state.caloriesBurned}",
+              info: "${distanceFormat.format(state.caloriesBurned/1000)} kcal",
             ),
           ],
         ),

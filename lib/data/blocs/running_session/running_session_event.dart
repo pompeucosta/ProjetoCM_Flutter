@@ -47,3 +47,11 @@ final class _TimerTicked extends RunningSessionEvent {
   @override
   List<Object?> get props => [durationInSeconds];
 }
+
+final class _LocationReceived extends RunningSessionEvent {
+  const _LocationReceived(this.position);
+  final Position position;
+
+  @override
+  List<Object?> get props => [position];
+}

@@ -55,3 +55,11 @@ final class _LocationReceived extends RunningSessionEvent {
   @override
   List<Object?> get props => [position];
 }
+
+final class _StepDetected extends RunningSessionEvent {
+  const _StepDetected(this.stepCount);
+  final int stepCount;
+
+  @override
+  List<Object?> get props => [stepCount];
+}

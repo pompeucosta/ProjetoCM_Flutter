@@ -18,6 +18,8 @@ import 'presets_page.dart';
 
 import 'package:camera/camera.dart';
 import 'data/blocs/camera_cubit.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'data/blocs/map_controller_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,7 +109,7 @@ class MyApp extends StatelessWidget {
           colorScheme: schemeDark,
           useMaterial3: true,
         ),
-        home: Providers(camera),
+        home: Providers(camera, MapController()),
       ),
     );
   }
@@ -115,7 +117,8 @@ class MyApp extends StatelessWidget {
 
 class Providers extends StatelessWidget {
   final CameraDescription camera;
-  const Providers(this.camera, {super.key});
+  final MapController mapControl; 
+  const Providers(this.camera, this.mapControl, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +134,9 @@ class Providers extends StatelessWidget {
         BlocProvider(
             create: (context) => SessionsBloc(context.read<SessionDatabase>())
               ..add(const GetSessionsEvent())),
-        BlocProvider(create: (context) => CameraCubit(camera))
+        BlocProvider(create: (context) => CameraCubit(camera)),
+        BlocProvider(create: (context) => MapControllerCubit(mapControl)),
+
       ],
       child: SafeArea(
         child: HomePage(),

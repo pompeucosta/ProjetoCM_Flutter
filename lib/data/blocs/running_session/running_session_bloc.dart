@@ -12,6 +12,8 @@ import 'package:run_route/data/models/session_details.dart';
 import '../../../services/notification_controller.dart';
 
 import 'package:geolocator/geolocator.dart';
+import 'package:pedometer/pedometer.dart';
+import 'package:intl/intl.dart';
 
 part 'running_session_event.dart';
 part 'running_session_state.dart';
@@ -22,9 +24,11 @@ class RunningSessionBloc
   late Preset preset;
   StreamSubscription<int>? timer;
   int duration = 0;
+  int initialStepValue = -1;
 
   bool isAllowedToSendNotification = false;
   bool timeWarned = false;
+  bool distanceWarned = false;
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -75,6 +79,13 @@ class RunningSessionBloc
 
         }
 
+        PermissionStatus activityPermission = await Permission.activityRecognition.request();
+        if (activityPermission.isGranted) {
+          initialStepValue = -1;
+          Stream<StepCount>_stepCountStream = await Pedometer.stepCountStream;
+          _stepCountStream.listen((stepcount) => add(_StepDetected(stepcount.steps))).onError((object) =>  add(const _StepDetected(0)));
+        }
+
       } catch (err) {
         emit(state.copyWith(status: RunningSessionStatus.failure));
       }
@@ -88,7 +99,7 @@ class RunningSessionBloc
         service.invoke(
           "update",
           {
-            "content": "$timerString\n${state.distance} km",
+            "content": "$timerString\n${NumberFormat("####0.0##").format(state.distance)} m",
           },
         );
       }
@@ -184,69 +195,58 @@ class RunningSessionBloc
         coordinates.add(event.position);
 
         // update average speed
-        double avgspeed = distance/(coordinates.first.timestamp.difference(coordinates.last.timestamp).inSeconds) * 0.36; //converting from m/s to km/h
+        double avgspeed = distance/(coordinates.last.timestamp.difference(coordinates.first.timestamp).inSeconds) * 0.36; //converting from m/s to km/h
         if (coordinates.length <= 1) {
           avgspeed = 0;
         }
 
-        // update top speed (uses average speeds to avoid spikes)
-        double latestSpeed = avgspeed;
-        if (coordinates.length == 2) {
-          Position? pos1 = coordinates.last;
-          Position? pos2 = coordinates.elementAt(coordinates.length-2);
-
-          double tempDistance = Geolocator.distanceBetween(pos1.latitude, pos1.longitude, pos2.latitude, pos2.longitude);
-          int tempTime = pos1.timestamp.difference(pos2.timestamp).inSeconds;
-          latestSpeed = tempDistance/tempTime * 0.36;      
-          
-          
+        // update top speed
+        if (event.position.speed * 0.36 > topSpeed && event.position.speedAccuracy < 10) {
+          topSpeed = event.position.speed * 0.36;
         }
-        else if (coordinates.length == 3) {
-          Position? pos1 = coordinates.last;
-          Position? pos2 = coordinates.elementAt(coordinates.length-2);
-          Position? pos3 = coordinates.elementAt(coordinates.length-3);
-
-          double tempDistance1 = Geolocator.distanceBetween(pos1.latitude, pos1.longitude, pos2.latitude, pos2.longitude);
-          int tempTime1 = pos1.timestamp.difference(pos2.timestamp).inSeconds;
-            
-          double tempDistance2 = Geolocator.distanceBetween(pos2.latitude, pos2.longitude, pos3.latitude, pos3.longitude);
-          int tempTime2 = pos2.timestamp.difference(pos3.timestamp).inSeconds;
-            
-          latestSpeed = ((tempDistance1/tempTime1 * 0.36) + (tempDistance2/tempTime2 * 0.36))/2;      
-
-        }
-        else if (coordinates.length > 3) {
-          Position? pos1 = coordinates.last;
-          Position? pos2 = coordinates.elementAt(coordinates.length-2);
-          Position? pos3 = coordinates.elementAt(coordinates.length-3);
-          Position? pos4 = coordinates.elementAt(coordinates.length-4);
-
-          double tempDistance1 = Geolocator.distanceBetween(pos1.latitude, pos1.longitude, pos2.latitude, pos2.longitude);
-          int tempTime1 = pos1.timestamp.difference(pos2.timestamp).inSeconds;
-            
-          double tempDistance2 = Geolocator.distanceBetween(pos2.latitude, pos2.longitude, pos3.latitude, pos3.longitude);
-          int tempTime2 = pos2.timestamp.difference(pos3.timestamp).inSeconds;
-
-          double tempDistance3 = Geolocator.distanceBetween(pos3.latitude, pos3.longitude, pos4.latitude, pos4.longitude);
-          int tempTime3 = pos3.timestamp.difference(pos4.timestamp).inSeconds;
-          
-          latestSpeed = ((tempDistance1/tempTime1 * 0.36) + (tempDistance2/tempTime2 * 0.36) + (tempDistance3/tempTime3 * 0.36))/3;
-
-        }
-        if (latestSpeed > topSpeed) {
-          topSpeed = latestSpeed;
+        if (avgspeed > topSpeed) {
+          topSpeed = avgspeed;
         }
 
         // update calories
         double met = (1.350325 * avgspeed - 3.4510092).abs();
         if(avgspeed > 0.0){
-            calories = time * met * 3.5 * 77 / (200 * 60);
+            calories = time * met * 3.5 * 77 / (200 * 60) * 0.1;
         }
 
 
         emit(state.copyWith(distance: distance, coordinates: coordinates, averageSpeed: avgspeed, topSpeed: topSpeed, caloriesBurned: calories));
         
+        if (!distanceWarned &&
+          isAllowedToSendNotification &&
+          preset.distance <= state.distance) {
+        distanceWarned = true;
+        // id 2 para a distancia
+        sendNotification("You have reached your distance goal!", 2);
+      }
+
+      if (!distanceWarned &&
+          isAllowedToSendNotification &&
+          preset.twoWay &&
+          preset.distance / 2 <= state.distance) {
+        distanceWarned = true;
+        // id 2 para a distancia
+        sendNotification(
+            "You have reached half of your distance goal!\nIt's time to go back.",
+            2);
+      }
+
+
     });
+    on<_StepDetected>(((event, emit) async {
+      if (initialStepValue < 0) {
+        initialStepValue = event.stepCount;
+      }
+      int steps = event.stepCount - initialStepValue;
+      if (steps < 0) {steps = 0;}
+
+      emit(state.copyWith(stepsTaken: steps));
+    }));
   }
 
   void sendNotification(String message, int notificationId) {

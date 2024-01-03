@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:run_route/data/blocs/bottom_navigation/bottom_navigation_bloc.dart';
+import 'package:run_route/data/blocs/map_controller_cubit.dart';
 import 'package:run_route/data/blocs/running_session/running_session_bloc.dart';
 import 'package:run_route/data/blocs/sessions/sessions_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -31,7 +32,7 @@ class RunningSessionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    MapController mapControl = MapController(); 
+
     return BlocConsumer<RunningSessionBloc, RunningSessionState>(
         listener: (context, state) {
       switch (state.status) {
@@ -53,7 +54,7 @@ class RunningSessionView extends StatelessWidget {
     }, builder: (context, state) {
       return Column(
         children: [
-          MyMap(state,mapControl),
+          MyMap(state),
           DetailsContainer(state), 
         ],
       );
@@ -66,25 +67,30 @@ class RunningSessionView extends StatelessWidget {
 
 class MyMap extends StatelessWidget {
   final RunningSessionState state;
-  final MapController mapControl;
-  const MyMap(this.state, this.mapControl, {super.key});
+  const MyMap(this.state, {super.key});
 
 
   @override
   Widget build(BuildContext context) {
 
+    MapController mapControl = context.read<MapControllerCubit>().state;
+
+    const Color mapLinesColor = Color(0xFF000020);
+
     LatLng currentPosition = const LatLng(40.63311541916194, -8.659546357913722);
+    List<LatLng> coordinatesAsLatLng = <LatLng>[];
     if (state.coordinates.isNotEmpty) {
       Position lastPosition = state.coordinates.last;
-      currentPosition = LatLng(lastPosition.latitude, lastPosition.longitude);
-    
-      List<LatLng> coordinatesAsLatLng = <LatLng>[];
+      currentPosition = LatLng(lastPosition.latitude, lastPosition.longitude); 
       for (Position element in state.coordinates) {
         coordinatesAsLatLng.add(LatLng(element.latitude, element.longitude));
       }
       mapControl.fitCamera(CameraFit.coordinates(coordinates: coordinatesAsLatLng, maxZoom: 17, padding: const EdgeInsets.all(50)));
     }
-
+    else
+    {
+      coordinatesAsLatLng.add(currentPosition);
+    }
     
 
     return Flexible(
@@ -100,6 +106,23 @@ class MyMap extends StatelessWidget {
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.app',
         ),
+        PolylineLayer(polylines: [Polyline(points: coordinatesAsLatLng, color: mapLinesColor, strokeWidth: 5)]),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: coordinatesAsLatLng.first,
+              width: 10,
+              height: 10,
+              child: const Icon(Icons.circle, color: mapLinesColor, size: 10,),
+            ),
+            Marker(
+              point: coordinatesAsLatLng.last,
+              width: 10,
+              height: 10,
+              child: const Icon(Icons.run_circle_outlined, color: mapLinesColor, size: 10,),
+            ),
+          ],
+        ),
         RichAttributionWidget(
           attributions: [
             TextSourceAttribution(
@@ -109,6 +132,17 @@ class MyMap extends StatelessWidget {
             ),
           ],
         ),
+        Container(
+          alignment: Alignment.bottomLeft,
+          child: IconButton.filled(
+                alignment: Alignment.bottomLeft,
+                iconSize: 30,
+                icon: const Icon(Icons.my_location),
+                color: Colors.white,
+                onPressed: () =>
+                  mapControl.fitCamera(CameraFit.coordinates(coordinates: coordinatesAsLatLng, maxZoom: 17, padding: const EdgeInsets.all(50)))
+                ))
+
       ],
     ));
   }

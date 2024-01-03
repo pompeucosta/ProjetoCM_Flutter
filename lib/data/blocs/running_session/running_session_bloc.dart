@@ -29,6 +29,8 @@ class RunningSessionBloc
   bool isAllowedToSendNotification = false;
   bool timeWarned = false;
   bool distanceWarned = false;
+  bool halfTimeWarned = false;
+  bool halfDistanceWarned = false;
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -76,7 +78,6 @@ class RunningSessionBloc
                         add(_LocationReceived(position));
                     }
                 });
-
         }
 
         PermissionStatus activityPermission = await Permission.activityRecognition.request();
@@ -85,6 +86,11 @@ class RunningSessionBloc
           Stream<StepCount>_stepCountStream = await Pedometer.stepCountStream;
           _stepCountStream.listen((stepcount) => add(_StepDetected(stepcount.steps))).onError((object) =>  add(const _StepDetected(0)));
         }
+
+        timeWarned = false;
+        distanceWarned = false;
+        halfTimeWarned = false;
+        halfDistanceWarned = false;
 
       } catch (err) {
         emit(state.copyWith(status: RunningSessionStatus.failure));
@@ -112,11 +118,11 @@ class RunningSessionBloc
         sendNotification("You have reached your time goal!", 1);
       }
 
-      if (!timeWarned &&
+      if (!halfTimeWarned &&
           isAllowedToSendNotification &&
           preset.twoWay &&
           preset.durationInSeconds / 2 <= event.durationInSeconds) {
-        timeWarned = true;
+        halfTimeWarned = true;
         // id 1 para o timer. usar outro id para notificacoes da distancia
         sendNotification(
             "You have reached half of your time goal!\nIt's time to go back.",
@@ -128,8 +134,12 @@ class RunningSessionBloc
         final service = FlutterBackgroundService();
         if (await service.isRunning()) service.invoke("stopService");
         final today = DateTime.now();
+        List<Map<String,dynamic>> coordinatesAsMapList = [];
+        for (Position element in state.coordinates) {
+          coordinatesAsMapList.add(element.toJson());
+        }
         final details = SessionDetails(
-            0, 0, duration, 0, 0, 0, today.day, today.month, today.year, "");
+            state.averageSpeed, state.topSpeed, duration, state.distance, state.stepsTaken, state.caloriesBurned, today.day, today.month, today.year, "", coordinatesAsMapList);
 
         await sessionDB.insertSession(details);
         emit(state.copyWith(status: RunningSessionStatus.ended));
@@ -225,11 +235,11 @@ class RunningSessionBloc
         sendNotification("You have reached your distance goal!", 2);
       }
 
-      if (!distanceWarned &&
+      if (!halfDistanceWarned &&
           isAllowedToSendNotification &&
           preset.twoWay &&
           preset.distance / 2 <= state.distance) {
-        distanceWarned = true;
+        halfDistanceWarned = true;
         // id 2 para a distancia
         sendNotification(
             "You have reached half of your distance goal!\nIt's time to go back.",

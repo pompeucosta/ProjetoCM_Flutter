@@ -5,17 +5,17 @@ part 'session_details.g.dart';
 @HiveType(typeId: 1)
 class SessionDetails extends HiveObject {
   @HiveField(0)
-  int averageSpeed = 0;
+  double averageSpeed = 0;
   @HiveField(1)
-  int topSpeed = 0;
+  double topSpeed = 0;
   @HiveField(2)
   int durationInSecods = 0;
   @HiveField(3)
-  int distance = 0;
+  double distance = 0;
   @HiveField(4)
   int stepsTaken = 0;
   @HiveField(5)
-  int caloriesBurned = 0;
+  double caloriesBurned = 0;
   @HiveField(6)
   int day = 1;
   @HiveField(7)
@@ -24,6 +24,8 @@ class SessionDetails extends HiveObject {
   int year = 2023;
   @HiveField(9)
   String location = "";
+  @HiveField(10)
+  List<Map<String,dynamic>> coordinates = [];
 
   Duration get duration => Duration(seconds: durationInSecods);
 
@@ -37,5 +39,6 @@ class SessionDetails extends HiveObject {
       this.day,
       this.month,
       this.year,
-      this.location);
+      this.location,
+      this.coordinates,);
 }

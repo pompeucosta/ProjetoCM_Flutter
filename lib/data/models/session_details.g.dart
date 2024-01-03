@@ -17,23 +17,26 @@ class SessionDetailsAdapter extends TypeAdapter<SessionDetails> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return SessionDetails(
-      fields[0] as int,
-      fields[1] as int,
+      fields[0] as double,
+      fields[1] as double,
       fields[2] as int,
-      fields[3] as int,
+      fields[3] as double,
       fields[4] as int,
-      fields[5] as int,
+      fields[5] as double,
       fields[6] as int,
       fields[7] as int,
       fields[8] as int,
       fields[9] as String,
+      (fields[10] as List)
+          .map((dynamic e) => (e as Map).cast<String, dynamic>())
+          .toList(),
     );
   }
 
   @override
   void write(BinaryWriter writer, SessionDetails obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.averageSpeed)
       ..writeByte(1)
@@ -53,7 +56,9 @@ class SessionDetailsAdapter extends TypeAdapter<SessionDetails> {
       ..writeByte(8)
       ..write(obj.year)
       ..writeByte(9)
-      ..write(obj.location);
+      ..write(obj.location)
+      ..writeByte(10)
+      ..write(obj.coordinates);
   }
 
   @override

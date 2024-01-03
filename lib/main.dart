@@ -207,18 +207,16 @@ class GreetingsPage extends StatelessWidget {
       appBar: AppBar(
         title: const Center(child: Text("Welcome")),
       ),
-      body: SingleChildScrollView(
-        child: Center(
+      body: Center(
           child: BlocBuilder<SessionsBloc, SessionsState>(
             builder: (context, state) {
               return state.sessions.isEmpty
                   ? const NoSession()
-                  : Session(state.sessions.first);
+                  : HistorySession(state.sessions.first);
             },
           ),
         ),
-      ),
-    );
+      );
   }
 }
 

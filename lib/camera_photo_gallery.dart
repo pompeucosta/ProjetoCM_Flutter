@@ -68,7 +68,7 @@ class _PhotoOptionsState extends State<PhotoOptions> {
       Directory directory = await getApplicationDocumentsDirectory();
 
       int timestamp = DateTime.now().millisecondsSinceEpoch;
-      final String path = '${directory.path}/images/RunRoute_$timestamp.jpg';
+      final String path = '${directory.path}RunRoute_$timestamp.jpg';
 
       //print(path);
 

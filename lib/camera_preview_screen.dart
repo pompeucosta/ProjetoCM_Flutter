@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'dart:async';
-import 'dart:io';
-
+import 'package:run_route/data/blocs/running_session/running_session_bloc.dart';
 import 'camera_photo_gallery.dart';
-import 'data/blocs/camera_cubit.dart';
 
 class CameraScreen extends StatefulWidget {
   final CameraDescription camera;
-  const CameraScreen(this.camera, {super.key});
+  final RunningSessionBloc sessionBloc;
+  const CameraScreen(this.camera, this.sessionBloc, {super.key});
 
   @override
   _CameraScreenState createState() => _CameraScreenState();
@@ -24,7 +23,7 @@ class _CameraScreenState extends State<CameraScreen> {
     return Scaffold(
       appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.primary, title: Container(child: Text("Aveiro - Portugal"), alignment: Alignment.centerRight,),),
       body: Center(
-        child: CameraScreenContent(widget.camera)
+        child: CameraScreenContent(widget.camera, widget.sessionBloc)
       ),
     );
   }
@@ -35,7 +34,8 @@ class _CameraScreenState extends State<CameraScreen> {
 
 class CameraScreenContent extends StatefulWidget {
   final CameraDescription camera;
-  const CameraScreenContent(this.camera, {super.key});
+  final RunningSessionBloc sessionBloc;
+  const CameraScreenContent(this.camera, this.sessionBloc, {super.key});
 
   @override
   _CameraScreenContentState createState() => _CameraScreenContentState();
@@ -56,6 +56,7 @@ class _CameraScreenContentState extends State<CameraScreenContent> {
       widget.camera,
       // Define the resolution to use.
       ResolutionPreset.high,
+      enableAudio: false,
 
     );
 
@@ -88,7 +89,7 @@ void _takePhoto(context) async {
             // If the picture was taken, display it on a new screen.
             await Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => CameraGalleryScreen(image.path),
+                builder: (context) => CameraGalleryScreen(image.path, widget.sessionBloc),
               ),
             );
           } catch (e) {

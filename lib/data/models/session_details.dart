@@ -26,6 +26,8 @@ class SessionDetails extends HiveObject {
   String location = "";
   @HiveField(10)
   List<Map<String,dynamic>> coordinates = [];
+  @HiveField(11)
+  List<String> photos = [];
 
   Duration get duration => Duration(seconds: durationInSecods);
 
@@ -40,5 +42,6 @@ class SessionDetails extends HiveObject {
       this.month,
       this.year,
       this.location,
-      this.coordinates,);
+      this.coordinates,
+      this.photos);
 }

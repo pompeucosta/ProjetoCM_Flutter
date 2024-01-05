@@ -225,13 +225,20 @@ class DetailsContainer_History extends StatelessWidget {
                     child: TextButton(
                       child: Text("View photos"),
                       onPressed: () async {
-                        Directory mainDirectory = await getApplicationDocumentsDirectory();
+                        Directory directory = await getApplicationDocumentsDirectory();
+                        Directory? externalStorage = await getExternalStorageDirectory();
+                        if (externalStorage is Directory) {
+                          print("External Storage: ${externalStorage.path}");
+                          directory = externalStorage;
+                        }
+                        directory = Directory("${directory.path}/images/");
+
                         DateTime startTime = Position.fromMap(state.coordinates.first).timestamp;
                         DateTime endTime = Position.fromMap(state.coordinates.last).timestamp;
 
                         await Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) => PhotoGallery_History(startTime: startTime, endTime: endTime, imagesDirectoryPath: "${mainDirectory.path}"),
+                                    builder: (context) => PhotoGallery_History(photoFilePaths: state.photos, imagesDirectoryPath: "${directory.path}"),
                                   ),
                                 );
                       },
@@ -330,39 +337,35 @@ class SessionInfo_History extends StatelessWidget {
 
 
 class PhotoGallery_History extends StatelessWidget {
-  const PhotoGallery_History({super.key, required this.imagesDirectoryPath, required this.startTime, required this.endTime});
+  const PhotoGallery_History({super.key, required this.imagesDirectoryPath, required this.photoFilePaths});
 
-  final DateTime startTime;
-  final DateTime endTime;
+  final List<String> photoFilePaths;
   final String imagesDirectoryPath;
 
   List<Widget> getPhotos(BuildContext context) {
     List<Container> photos = [];
 
-    Directory imagesDir = Directory(imagesDirectoryPath);
-
-    List contents = imagesDir.listSync(recursive: true);
-    for (var fileOrDir in contents) {
-      if (fileOrDir is File) {
-        String filePath = fileOrDir.path;
-        print("Image found: ${filePath}");
-        if (filePath.contains('${imagesDirectoryPath}RunRoute_')) {
-          filePath.replaceFirst('${imagesDirectoryPath}RunRoute_', '');
-          filePath.replaceFirst('.jpg', '');
-          int timestamp = int.parse(filePath);
-
-          if (DateTime.fromMillisecondsSinceEpoch(timestamp).isAfter(startTime) || DateTime.fromMillisecondsSinceEpoch(timestamp).isBefore(endTime)) {
-            Image img = Image.file(File(fileOrDir.path));
-            photos.add(Container(
-                        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height, maxWidth: MediaQuery.of(context).size.width),
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                              fit: BoxFit.cover,
-                              image: img.image,)
-                        ),
-            ));
-          }
+    for (String path in photoFilePaths) {
+      try
+      {
+        if (File(path).existsSync()) {
+          Image img = Image.file(File(path));
+              photos.add(Container(
+                          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height, maxWidth: MediaQuery.of(context).size.width),
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                                fit: BoxFit.cover,
+                                image: img.image,)
+                          ),
+              ));
         }
+      }
+      catch (err)
+      {
+        return [Container(
+          alignment: Alignment.center,
+          child: Text("Error loading photo")
+          )];
       }
     }
 

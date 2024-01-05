@@ -177,7 +177,7 @@ class RunningSessionBloc
           coordinatesAsMapList.add(element.toJson());
         }
         final details = SessionDetails(
-            state.averageSpeed, state.topSpeed, duration, state.distance, state.stepsTaken, state.caloriesBurned, today.day, today.month, today.year, "", coordinatesAsMapList);
+            state.averageSpeed, state.topSpeed, duration, state.distance, state.stepsTaken, state.caloriesBurned, today.day, today.month, today.year, "", coordinatesAsMapList, state.photos);
 
         await sessionDB.insertSession(details);
         emit(state.copyWith(status: RunningSessionStatus.ended));
@@ -304,6 +304,12 @@ class RunningSessionBloc
       if (steps < 0) {steps = 0;}
 
       emit(state.copyWith(stepsTaken: steps));
+    }));
+    on<PhotoTakenEvent>(((event, emit) async {
+      List<String> photosTaken = List.from(state.photos);
+      photosTaken.add(event.photoFilePath);
+      print("Photos Taken: ${photosTaken}");
+      emit(state.copyWith(photos: photosTaken));
     }));
   }
 

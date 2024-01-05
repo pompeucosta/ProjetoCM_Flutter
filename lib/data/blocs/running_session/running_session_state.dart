@@ -18,6 +18,7 @@ final class RunningSessionState extends Equatable {
   final double caloriesBurned;
   final double distance;
   final List<Position> coordinates;
+  final List<String> photos;
 
   Duration get duration => Duration(seconds: durationInSeconds);
 
@@ -29,7 +30,8 @@ final class RunningSessionState extends Equatable {
       this.stepsTaken = 0,
       this.topSpeed = 0.0,
       this.distance = 0.0,
-      this.coordinates = const <Position>[] });
+      this.coordinates = const <Position>[],
+      this.photos = const <String>[]  });
 
   RunningSessionState copyWith(
       {RunningSessionStatus? status,
@@ -39,7 +41,8 @@ final class RunningSessionState extends Equatable {
       double? topSpeed,
       double? caloriesBurned,
       double? distance,
-      List<Position>? coordinates}) {
+      List<Position>? coordinates,
+      List<String>? photos}) {
     return RunningSessionState(
         status: status ?? this.status,
         durationInSeconds: durationInSeconds ?? this.durationInSeconds,
@@ -48,7 +51,8 @@ final class RunningSessionState extends Equatable {
         topSpeed: topSpeed ?? this.topSpeed,
         caloriesBurned: caloriesBurned ?? this.caloriesBurned,
         distance: distance ?? this.distance,
-        coordinates: coordinates ?? this.coordinates);
+        coordinates: coordinates ?? this.coordinates,
+        photos: photos ?? this.photos);
   }
 
   @override
@@ -60,6 +64,7 @@ final class RunningSessionState extends Equatable {
         topSpeed,
         caloriesBurned,
         distance,
-        coordinates
+        coordinates,
+        photos
       ];
 }

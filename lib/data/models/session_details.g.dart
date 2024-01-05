@@ -30,13 +30,14 @@ class SessionDetailsAdapter extends TypeAdapter<SessionDetails> {
       (fields[10] as List)
           .map((dynamic e) => (e as Map).cast<String, dynamic>())
           .toList(),
+      (fields[11] as List).cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, SessionDetails obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.averageSpeed)
       ..writeByte(1)
@@ -58,7 +59,9 @@ class SessionDetailsAdapter extends TypeAdapter<SessionDetails> {
       ..writeByte(9)
       ..write(obj.location)
       ..writeByte(10)
-      ..write(obj.coordinates);
+      ..write(obj.coordinates)
+      ..writeByte(11)
+      ..write(obj.photos);
   }
 
   @override

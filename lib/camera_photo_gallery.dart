@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:run_route/data/blocs/running_session/running_session_bloc.dart';
 
 class CameraGalleryScreen extends StatefulWidget {
   final String imagePath;
-  const CameraGalleryScreen(this.imagePath, {super.key});
+  final RunningSessionBloc sessionBloc;
+  const CameraGalleryScreen(this.imagePath, this.sessionBloc, {super.key});
 
   @override
   _CameraGalleryScreenState createState() => _CameraGalleryScreenState();
@@ -15,14 +17,15 @@ class _CameraGalleryScreenState extends State<CameraGalleryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-              body: PhotoTakenContent(widget.imagePath),
+              body: PhotoTakenContent(widget.imagePath, widget.sessionBloc),
             );
   }
 }
 
 class PhotoTakenContent extends StatefulWidget {
   final String imagePath;
-  const PhotoTakenContent(this.imagePath, {super.key});
+  final RunningSessionBloc sessionBloc;
+  const PhotoTakenContent(this.imagePath, this.sessionBloc, {super.key});
 
   @override
   _PhotoTakenContentState createState() => _PhotoTakenContentState();
@@ -42,7 +45,7 @@ class _PhotoTakenContentState extends State<PhotoTakenContent> {
           ),
       ),
       alignment: Alignment.bottomCenter,
-      child: PhotoOptions(widget.imagePath),
+      child: PhotoOptions(widget.imagePath, widget.sessionBloc),
     ),
     );
   }
@@ -50,7 +53,8 @@ class _PhotoTakenContentState extends State<PhotoTakenContent> {
 
 class PhotoOptions extends StatefulWidget {
   final String imagePath;
-  const PhotoOptions(this.imagePath, {super.key});
+  final RunningSessionBloc sessionBloc;
+  const PhotoOptions(this.imagePath, this.sessionBloc, {super.key});
 
   @override
   _PhotoOptionsState createState() => _PhotoOptionsState();
@@ -63,18 +67,28 @@ class _PhotoOptionsState extends State<PhotoOptions> {
 
   void _savePhoto(context) async {
 
-    if (await Permission.manageExternalStorage.request().isGranted){
+    if (await Permission.photos.request().isGranted){
 
       Directory directory = await getApplicationDocumentsDirectory();
+      Directory? externalStorage = await getExternalStorageDirectory();
+      if (externalStorage is Directory) {
+        print("External Storage: ${externalStorage.path}");
+        directory = externalStorage;
+      }
+
+      directory = Directory("${directory.path}/images/");
+      Directory imagesDirectory = await directory.create(recursive: true);
 
       int timestamp = DateTime.now().millisecondsSinceEpoch;
-      final String path = '${directory.path}RunRoute_$timestamp.jpg';
+      final String path = '${imagesDirectory.path}RunRoute_$timestamp.jpg';
 
       //print(path);
+      File newimage = File(path);
+      await newimage.create();
+      newimage = await File(widget.imagePath).copy(path);
 
-      final File newimage = await File(widget.imagePath).copy(path);
-
-      if(await File(path).exists()){
+      if(await newimage.exists()){
+        widget.sessionBloc.add(PhotoTakenEvent(path));
         final snackBar = SnackBar(content: const Text('Photo saved successfully'));
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }

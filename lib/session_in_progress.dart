@@ -256,10 +256,11 @@ class SessionButtons extends StatelessWidget {
 
   void _goToCamera(BuildContext context) {
     CameraDescription camera = context.read<CameraCubit>().state;
+    RunningSessionBloc sessionBloc = context.read<RunningSessionBloc>();
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => CameraScreen(camera)),
+      MaterialPageRoute(builder: (context) => CameraScreen(camera, sessionBloc)),
     );
   }
 

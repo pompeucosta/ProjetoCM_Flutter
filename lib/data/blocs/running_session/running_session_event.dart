@@ -63,3 +63,11 @@ final class _StepDetected extends RunningSessionEvent {
   @override
   List<Object?> get props => [stepCount];
 }
+
+final class PhotoTakenEvent extends RunningSessionEvent {
+  const PhotoTakenEvent(this.photoFilePath);
+  final String photoFilePath;
+
+  @override
+  List<Object?> get props => [photoFilePath];
+}

@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:run_route/data/blocs/bottom_navigation/bottom_navigation_bloc.dart';
-import 'package:run_route/data/blocs/map_controller_cubit.dart';
 import 'package:run_route/data/blocs/running_session/running_session_bloc.dart';
 import 'package:run_route/data/blocs/sessions/sessions_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -33,6 +32,7 @@ class RunningSessionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    MapController mapControl = MapController();
     return BlocConsumer<RunningSessionBloc, RunningSessionState>(
         listener: (context, state) {
       switch (state.status) {
@@ -54,7 +54,7 @@ class RunningSessionView extends StatelessWidget {
     }, builder: (context, state) {
       return Column(
         children: [
-          MyMap(state),
+          MyMap(state, mapControl),
           DetailsContainer(state), 
         ],
       );
@@ -67,15 +67,14 @@ class RunningSessionView extends StatelessWidget {
 
 class MyMap extends StatelessWidget {
   final RunningSessionState state;
-  const MyMap(this.state, {super.key});
+  final MapController mapControl;
+  const MyMap(this.state, this.mapControl, {super.key});
 
 
   @override
   Widget build(BuildContext context) {
 
-    MapController mapControl = context.read<MapControllerCubit>().state;
-
-    const Color mapLinesColor = Color(0xFF000020);
+    const Color mapLinesColor = Color.fromARGB(255, 2, 2, 69);
 
     LatLng currentPosition = const LatLng(40.63311541916194, -8.659546357913722);
     List<LatLng> coordinatesAsLatLng = <LatLng>[];
@@ -99,7 +98,7 @@ class MyMap extends StatelessWidget {
               options: MapOptions(
                 initialCenter: currentPosition,
                 initialZoom: 9.2,
-                
+                onMapReady: () => mapControl.fitCamera(CameraFit.coordinates(coordinates: coordinatesAsLatLng, maxZoom: 17, padding: const EdgeInsets.all(50))),
               ),
       children: [
         TileLayer(
@@ -234,7 +233,7 @@ class SessionDetails extends StatelessWidget {
           children: [
             SessionInfo(
               name: "Distance:",
-              info: "${distanceFormat.format(state.distance)} m",
+              info: state.distance>1000? "${distanceFormat.format(state.distance/1000)} km" : "${distanceFormat.format(state.distance)} m",
             ),
             SessionInfo(
               name: "Steps Taken:",
@@ -242,7 +241,7 @@ class SessionDetails extends StatelessWidget {
             ),
             SessionInfo(
               name: "Calories Burned:",
-              info: "${distanceFormat.format(state.caloriesBurned/1000)} kcal",
+              info: state.caloriesBurned>1? "${distanceFormat.format(state.caloriesBurned/1000)} kcal" : "${distanceFormat.format(state.caloriesBurned)} cal" ,
             ),
           ],
         ),

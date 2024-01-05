@@ -158,7 +158,7 @@ class _EditPageState extends State<EditPage> {
       name: name,
       twoWay: twoWay,
       durationInSeconds: hours * 3600 + minutes * 60 + seconds,
-      distance: distance,
+      distance: distance * 1000,
     );
 
     Navigator.pop(context, pr);

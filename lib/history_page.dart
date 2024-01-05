@@ -111,7 +111,7 @@ class MyMap_History extends StatelessWidget {
   Widget build(BuildContext context) {
 
     MapController mapControl = MapController();
-    const Color mapLinesColor = Color(0xFF000020);
+    const Color mapLinesColor = Color.fromARGB(255, 2, 2, 69);
 
     LatLng currentPosition = const LatLng(40.63311541916194, -8.659546357913722);
     List<LatLng> coordinatesAsLatLng = <LatLng>[];
@@ -284,7 +284,7 @@ class SessionDetails_History extends StatelessWidget {
           children: [
             SessionInfo_History(
               name: "Distance:",
-              info: "${distanceFormat.format(state.distance)} m",
+              info: state.distance>1000? "${distanceFormat.format(state.distance/1000)} km" : "${distanceFormat.format(state.distance)} m",
             ),
             SessionInfo_History(
               name: "Steps Taken:",
@@ -292,7 +292,7 @@ class SessionDetails_History extends StatelessWidget {
             ),
             SessionInfo_History(
               name: "Calories Burned:",
-              info: "${distanceFormat.format(state.caloriesBurned/1000)} kcal",
+              info: state.caloriesBurned>1? "${distanceFormat.format(state.caloriesBurned/1000)} kcal" : "${distanceFormat.format(state.caloriesBurned)} cal" ,
             ),
           ],
         ),

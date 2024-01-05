@@ -12,8 +12,11 @@ import 'package:run_route/data/models/session_details.dart';
 import '../../../services/notification_controller.dart';
 
 import 'package:geolocator/geolocator.dart';
+import 'package:geolocator_apple/geolocator_apple.dart';
+import 'package:geolocator_android/geolocator_android.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:intl/intl.dart';
+import 'dart:io' show Platform;
 
 part 'running_session_event.dart';
 part 'running_session_state.dart';
@@ -23,6 +26,7 @@ class RunningSessionBloc
   final SessionDatabase sessionDB;
   late Preset preset;
   StreamSubscription<int>? timer;
+  StreamSubscription<Position>? positionStream;
   int duration = 0;
   int initialStepValue = -1;
 
@@ -67,11 +71,41 @@ class RunningSessionBloc
 
         bool hasLocationPermission = await requestLocationPermissions();
         if (hasLocationPermission) {
-            const LocationSettings locationSettings = LocationSettings(
+
+            late LocationSettings locationSettings;
+
+          if (Platform.isAndroid) {
+              locationSettings = AndroidSettings(
+              accuracy: LocationAccuracy.best,
+              distanceFilter: 10,
+              forceLocationManager: true,
+              intervalDuration: const Duration(seconds: 10),
+              //(Optional) Set foreground notification config to keep the app alive 
+              //when going to the background
+              foregroundNotificationConfig: const ForegroundNotificationConfig(
+                  notificationText:
+                  "",
+                  notificationTitle: "Tracking location",
+              )
+            );
+          } else if (Platform.isIOS || Platform.isMacOS) {
+            locationSettings = AppleSettings(
+              accuracy: LocationAccuracy.best,
+              activityType: ActivityType.fitness,
+              distanceFilter: 10,
+              pauseLocationUpdatesAutomatically: true,
+              // Only set to true if our app will be started up in the background.
+              showBackgroundLocationIndicator: false,
+            );
+          } else {
+              locationSettings =  const LocationSettings(
               accuracy: LocationAccuracy.best,
               distanceFilter: 10,
             );
-            StreamSubscription<Position> positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+          }
+
+
+            positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
                 (Position? position) {
                     
                     if (position != null && state.status == RunningSessionStatus.inProgress) {
@@ -133,6 +167,10 @@ class RunningSessionBloc
       try {
         final service = FlutterBackgroundService();
         if (await service.isRunning()) service.invoke("stopService");
+        timer?.cancel();
+        if (positionStream != null) {
+          positionStream?.cancel();
+        }
         final today = DateTime.now();
         List<Map<String,dynamic>> coordinatesAsMapList = [];
         for (Position element in state.coordinates) {
@@ -165,6 +203,10 @@ class RunningSessionBloc
       //reset and call start session
       try {
         timer?.cancel();
+        if (positionStream != null) {
+          positionStream?.cancel();
+        }
+
         state.copyWith(
             status: RunningSessionStatus.initial,
             durationInSeconds: 0,
@@ -184,6 +226,11 @@ class RunningSessionBloc
         final service = FlutterBackgroundService();
         if (await service.isRunning()) service.invoke("stopService");
         timer?.cancel();
+
+        if (positionStream != null) {
+          positionStream?.cancel();
+        }
+
         emit(state.copyWith(status: RunningSessionStatus.success));
       } catch (err) {
         emit(state.copyWith(status: RunningSessionStatus.failure));
@@ -205,13 +252,13 @@ class RunningSessionBloc
         coordinates.add(event.position);
 
         // update average speed
-        double avgspeed = distance/(coordinates.last.timestamp.difference(coordinates.first.timestamp).inSeconds) * 0.36; //converting from m/s to km/h
+        double avgspeed = (distance/time * 0.36).abs();
         if (coordinates.length <= 1) {
           avgspeed = 0;
         }
 
         // update top speed
-        if (event.position.speed * 0.36 > topSpeed && event.position.speedAccuracy < 10) {
+        if (event.position.speed * 0.36 > topSpeed && event.position.speedAccuracy < event.position.speed * 0.5) {
           topSpeed = event.position.speed * 0.36;
         }
         if (avgspeed > topSpeed) {
@@ -219,9 +266,9 @@ class RunningSessionBloc
         }
 
         // update calories
-        double met = (1.350325 * avgspeed - 3.4510092).abs();
+        double met = 1.093220339 * avgspeed;
         if(avgspeed > 0.0){
-            calories = time * met * 3.5 * 77 / (200 * 60) * 0.1;
+            calories = (time/60) * met * 77 / 200;
         }
 
 
@@ -230,6 +277,7 @@ class RunningSessionBloc
         if (!distanceWarned &&
           isAllowedToSendNotification &&
           preset.distance <= state.distance) {
+        halfDistanceWarned = true;
         distanceWarned = true;
         // id 2 para a distancia
         sendNotification("You have reached your distance goal!", 2);
@@ -301,13 +349,14 @@ class RunningSessionBloc
         //return Future.error('Location permissions are denied');
       }
     }
-    
     if (permission == LocationPermission.deniedForever) {
       // Permissions are denied forever, handle appropriately. 
       return false;
       //return Future.error(
       //  'Location permissions are permanently denied, we cannot request permissions.');
     } 
+
+
 
     // When we reach here, permissions are granted and we can
     // continue accessing the position of the device.

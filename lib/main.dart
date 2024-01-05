@@ -19,7 +19,6 @@ import 'presets_page.dart';
 import 'package:camera/camera.dart';
 import 'data/blocs/camera_cubit.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'data/blocs/map_controller_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -135,7 +134,6 @@ class Providers extends StatelessWidget {
             create: (context) => SessionsBloc(context.read<SessionDatabase>())
               ..add(const GetSessionsEvent())),
         BlocProvider(create: (context) => CameraCubit(camera)),
-        BlocProvider(create: (context) => MapControllerCubit(mapControl)),
 
       ],
       child: SafeArea(

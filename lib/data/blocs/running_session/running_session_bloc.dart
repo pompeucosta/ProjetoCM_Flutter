@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geocode/geocode.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:run_route/data/database/session_db.dart';
 import 'package:run_route/data/models/preset.dart';
@@ -176,8 +177,27 @@ class RunningSessionBloc
         for (Position element in state.coordinates) {
           coordinatesAsMapList.add(element.toJson());
         }
+
+        String? city = "";
+        if (state.coordinates.isNotEmpty) {
+          try
+          {
+          GeoCode geocode = GeoCode();
+          Address address = await geocode.reverseGeocoding(latitude: state.coordinates.last.latitude, longitude: state.coordinates.last.longitude);
+          city = address.city;
+          }
+          catch (err)
+          {
+            city = "";
+          }
+          city = city?.toUpperCase();
+          if (city != null) {
+            if (city.contains("GEOCODE")) {city = "";}
+          }
+        }
+
         final details = SessionDetails(
-            state.averageSpeed, state.topSpeed, duration, state.distance, state.stepsTaken, state.caloriesBurned, today.day, today.month, today.year, "", coordinatesAsMapList, state.photos);
+            state.averageSpeed, state.topSpeed, duration, state.distance, state.stepsTaken, state.caloriesBurned, today.day, today.month, today.year, city??"", coordinatesAsMapList, state.photos);
 
         await sessionDB.insertSession(details);
         emit(state.copyWith(status: RunningSessionStatus.ended));

@@ -21,7 +21,7 @@ class _CameraScreenState extends State<CameraScreen> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.primary, title: Container(child: Text("Aveiro - Portugal"), alignment: Alignment.centerRight,),),
+      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.primary, title: Container(alignment: Alignment.centerRight, child: const Text("Camera", style: TextStyle(shadows: [Shadow(color: Color.fromARGB(150, 20, 0, 70), blurRadius: 50)])),),),
       body: Center(
         child: CameraScreenContent(widget.camera, widget.sessionBloc)
       ),
@@ -104,7 +104,9 @@ void _takePhoto(context) async {
     
 
     return Scaffold(
-          body: FutureBuilder<void>(
+          body: Container(
+                alignment: Alignment.center,
+                child: FutureBuilder<void>(
                 future: _initializeControllerFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
@@ -116,7 +118,8 @@ void _takePhoto(context) async {
                   }
                 },
               ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+              ),
+          floatingActionButtonLocation: MediaQuery.of(context).orientation == Orientation.landscape ? FloatingActionButtonLocation.endFloat : FloatingActionButtonLocation.centerFloat,
           floatingActionButton: FloatingActionButton.large(
                 onPressed: () async {_takePhoto(context);},
                 tooltip: 'Take photo',

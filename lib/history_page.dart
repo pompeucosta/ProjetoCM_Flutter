@@ -80,7 +80,7 @@ class HistorySessionInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Center(child: Text("Session"))),
+      appBar: AppBar(title: Container(alignment: Alignment.centerRight, child: const Text("Saved Session"),)),
       body: HistorySession(session),
     );
   }
@@ -153,9 +153,15 @@ class MyMap_History extends StatelessWidget {
             ),
             Marker(
               point: coordinatesAsLatLng.last,
-              width: 10,
-              height: 10,
-              child: const Icon(Icons.run_circle_outlined, color: mapLinesColor, size: 10,),
+              width: 20,
+              height: 20,
+              child: const Icon(Icons.run_circle_outlined, color: Color.fromARGB(255, 197, 143, 252), size: 20,),
+            ),
+            Marker(
+              point: coordinatesAsLatLng.last,
+              width: 20,
+              height: 20,
+              child: const Icon(Icons.run_circle, color: mapLinesColor, size: 20,),
             ),
           ],
         ),
@@ -210,7 +216,7 @@ class DetailsContainer_History extends StatelessWidget {
           ),
           children: [
             Container(
-              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height - 150),
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height - 240),
               child: ListView(
                 shrinkWrap: true,
                 children: [
@@ -383,7 +389,7 @@ class PhotoGallery_History extends StatelessWidget {
     
 
     return Scaffold(
-      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.primary, title: Container(child: Text("Aveiro - Portugal"), alignment: Alignment.centerRight,),),
+      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.primary, title: Container(alignment: Alignment.centerRight, child: const Text("Session Photos", style: TextStyle(shadows: [Shadow(color: Color.fromARGB(150, 20, 0, 70), blurRadius: 50)])),)),
       body: Center(
         child: PageView(
           children: getPhotos(context),)

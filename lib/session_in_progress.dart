@@ -116,9 +116,15 @@ class MyMap extends StatelessWidget {
             ),
             Marker(
               point: coordinatesAsLatLng.last,
-              width: 10,
-              height: 10,
-              child: const Icon(Icons.run_circle_outlined, color: mapLinesColor, size: 10,),
+              width: 20,
+              height: 20,
+              child: const Icon(Icons.run_circle_outlined, color: Color.fromARGB(255, 197, 143, 252), size: 20,),
+            ),
+            Marker(
+              point: coordinatesAsLatLng.last,
+              width: 20,
+              height: 20,
+              child: const Icon(Icons.run_circle, color: mapLinesColor, size: 20,),
             ),
           ],
         ),
